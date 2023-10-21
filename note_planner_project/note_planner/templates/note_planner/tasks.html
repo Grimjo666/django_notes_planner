@@ -1,0 +1,20 @@
+{% extends 'note_planner/base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Задачи</title>
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/sidebar.html' %}
+    <div class="tasks-block">
+        {% for task_name, value in tasks_dict.items %}
+            <div class="tasks-items">
+                <h2>{{ task_name }}</h2>
+                <p>
+                    Дедлайн: {{ value.0 }}<br>Приоритет: {{ value.1 }}
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

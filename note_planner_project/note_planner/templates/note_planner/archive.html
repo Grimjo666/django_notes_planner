@@ -1,0 +1,20 @@
+{% extends 'note_planner/base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Архив</title>
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/sidebar.html' %}
+    <div class="archive-block">
+        {% for task_name, value in archive_tasks.items %}
+            <div class="archive-items">
+                <h2>{{ task_name }}</h2>
+                <p>
+                    Дедлайн: {{ value.0 }}<br>Приоритет: {{ value.1 }}
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

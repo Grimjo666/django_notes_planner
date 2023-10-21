@@ -1,0 +1,39 @@
+{% extends 'note_planner/base.html' %}
+{% load static %}
+
+{% block css_style %}
+    <link rel="stylesheet" href="{% static 'css/notes.css' %}">
+{% endblock %}
+
+{% block title %}
+    <title>Заметки</title>
+{% endblock %}
+
+
+
+{% block content %}
+    {% include 'includes/sidebar.html' %}
+    <div class="notes-block">
+        <h2>Заметки</h2>
+        <div class="category-panel">
+            <form method="get" action="{% url 'notes_page_path' %}">
+                <button class="category-button" type="submit" name="category" value="all">Все</button>
+                {% for name, latin_name in categories_tuple %}
+                    <button class="category-button" type="submit" name="category" value="{{ latin_name }}">{{ name }}</button>
+                {% endfor %}
+            </form>
+        </div>
+        {% for note, value_dict in notes_dict.items %}
+            <div class="note-items">
+                <div class="note-items-inner">
+                    <p>{{note}}</p>
+                    <p>{{value_dict.content}}</p><br>Дата: {{value_dict.created_at}}
+                    <form method="post" action="{% url 'delete_note_path' value_dict.id %}">
+                        {% csrf_token %}
+                        <button type="submit">✖</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

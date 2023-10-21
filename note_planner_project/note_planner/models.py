@@ -1,9 +1,28 @@
 from django.db import models
 from django.contrib.auth.models import User
+from transliterate import translit
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
+    latin_name = models.CharField(max_length=100, default='', blank=True)
+
+    @staticmethod
+    def custom_translit(text):
+        try:
+            # Если текст является кириллическим
+            result = translit(text, 'ru', reversed=True)
+        except Exception:
+            # Если текст не является кириллическим
+            result = text
+        return result
+
+    def save(self, *args, **kwargs):
+        self.latin_name = self.custom_translit(self.name)
+        super(Category, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.name} - {self.latin_name}'
 
 
 class Note(models.Model):
@@ -13,6 +32,9 @@ class Note(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'Заметка: {self.title} | {self.category}'
+
 
 class Task(models.Model):
     title = models.CharField(max_length=100)
@@ -20,3 +42,6 @@ class Task(models.Model):
     priority = models.IntegerField()
     completed = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Задача: {self.title}'

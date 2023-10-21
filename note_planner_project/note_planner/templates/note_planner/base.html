@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block title %}
         <title>Планировщик</title>
@@ -12,23 +12,11 @@
     {% block css_style %}{% endblock %}
 </head>
 <body>
-    <header>
-        <h1>Планировщик</h1>
-        <nav>
-            <ul>
-                <li><a href="{% url 'home_page_path' %}">Главная</a></li>
-                <li><a href="#">Добавить Заметку</a></li>
-                <li><a href="#">Добавить Задачу</a></li>
-            </ul>
-        </nav>
-    </header>
-
     <div class="content">
         {% block content %}{% endblock %}
     </div>
 
-    <footer>
-        <p>&copy; 2023 Заметки и Планировщик. Все права защищены.</p>
-    </footer>
 </body>
 </html>
+
+

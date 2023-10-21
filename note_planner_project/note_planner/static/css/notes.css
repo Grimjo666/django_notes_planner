@@ -1,0 +1,66 @@
+.content{
+    padding-bottom: 20px;
+}
+
+.note-items {
+    width: calc(33.33% - 20px); /* 3 в ряд при максимальном разрешении */
+    margin: 10px;
+    padding: 15px;
+    background-color: var(--block_bg_color);
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    float: left;
+    box-sizing: border-box;
+    overflow-y: auto; /* добавляет вертикальный скролл, если контент выходит за пределы блока */
+    height: 200px; /* задает максимальную высоту блока, после которой будет появляться скролл */
+    position: relative;
+}
+
+.note-items-inner button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: white;
+    background-color: var(--block_bg_color);
+    border: none;
+}
+
+.note-items-inner button:hover {
+    background-color: var(--delete_button_bg);
+    color: black;
+}
+
+/* Медиа-запросы для средних экранов */
+@media (max-width: 768px) {
+    .note-items {
+        width: calc(50% - 20px); /* 2 в ряд при среднем разрешении */
+    }
+}
+
+/* Медиа-запросы для телефонных экранов */
+@media (max-width: 480px) {
+    .note-items {
+        width: calc(100% - 20px); /* 1 в ряд при телефонном разрешении */
+    }
+}
+
+.category-panel {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    display: flex;
+
+}
+
+.category-button {
+    background-color: var(--sidebar_background);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.category-button:hover {
+    background-color: var(--font_color_activ);
+    color: var(--background_color);
+}
