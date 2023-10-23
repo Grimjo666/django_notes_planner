@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, Http404
 from .models import Note, Task, Category
+from django.contrib.auth.models import User
+from .forms import RegistrationForm
 
 
 def notes_page(request):
@@ -26,10 +28,34 @@ def notes_page(request):
     return render(request, 'note_planner/notes.html', context=context)
 
 
-def delete_note(request, note_id):
+def delete_note_page(request, note_id):
     Note.objects.get(id=note_id).delete()
 
-    return notes_page(request)
+    return redirect('notes_page_path')
+
+
+def add_note_page(request):
+    category_data = Category.objects.all()
+
+    # Проверяем авторизован ли пользователь
+    if request.user.is_authenticated:
+        context = {
+            'category_data': category_data,
+        }
+
+        return render(request, 'note_planner/add_note.html', context=context)
+    else:
+        return render(request, 'note_planner/login.html')
+
+
+def save_note(request):
+    post_dict = request.POST
+    title = post_dict.get('title')
+    content = post_dict.get('content')
+    category_id = post_dict.get('category_id')
+    print(title, category_id, content)
+
+    return redirect('notes_page_path')
 
 
 def tasks_page(request):
@@ -48,3 +74,17 @@ def archive_page(request):
         'archive_tasks': tasks
     }
     return render(request, 'note_planner/archive.html', context=context)
+
+
+def login_page(request):
+    return render(request, 'login.html')
+
+
+def register_page(request):
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            print('Пользователь зарегистрирован')
+    else:
+        form = RegistrationForm
+    return render(request, 'register.html', context={'form': form})

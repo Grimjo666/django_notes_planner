@@ -27,7 +27,7 @@ class Category(models.Model):
 
 class Note(models.Model):
     title = models.CharField(max_length=100)
-    content = models.TextField()
+    content = models.TextField(default='', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -45,3 +45,5 @@ class Task(models.Model):
 
     def __str__(self):
         return f'Задача: {self.title}'
+
+

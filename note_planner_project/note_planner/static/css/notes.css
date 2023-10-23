@@ -16,20 +16,58 @@
     position: relative;
 }
 
-.note-items-inner button {
+.button-delete-note {
     position: absolute;
     top: 0;
     right: 0;
-    color: white;
+    color: var(--font_color);
     background-color: var(--block_bg_color);
     border: none;
 }
 
-.note-items-inner button:hover {
+.note-items-inner h3 {
+    margin-top: 0;
+}
+
+.note-items-inner p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.note-date {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 14px;
+    color: var(--font_color);
+}
+
+.button-delete-note:hover {
     background-color: var(--delete_button_bg);
     color: black;
 }
 
+.note-items-inner-add-note {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; /* Высота блока в 100% для центрирования по вертикали */
+}
+
+.button-add-note {
+    background-color: var(--block_bg_color);
+    color: var(--font_color);
+    border: none;
+    padding: 20px 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 50px;
+}
+
+.button-add-note:hover {
+    color: var(--font_color_activ);
+}
 /* Медиа-запросы для средних экранов */
 @media (max-width: 768px) {
     .note-items {

@@ -1,4 +1,4 @@
-{% extends 'note_planner/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block css_style %}
@@ -23,17 +23,26 @@
                 {% endfor %}
             </form>
         </div>
-        {% for note, value_dict in notes_dict.items %}
             <div class="note-items">
-                <div class="note-items-inner">
-                    <p>{{note}}</p>
-                    <p>{{value_dict.content}}</p><br>Дата: {{value_dict.created_at}}
-                    <form method="post" action="{% url 'delete_note_path' value_dict.id %}">
+                <div class="note-items-inner-add-note">
+                    <form method="get" action="{% url 'add_note_page_path' %}">
                         {% csrf_token %}
-                        <button type="submit">✖</button>
+                        <button type="submit" class="button-add-note">+</button>
                     </form>
                 </div>
             </div>
-        {% endfor %}
-    </div>
+            {% for note, value_dict in notes_dict.items %}
+                <div class="note-items">
+                    <div class="note-items-inner">
+                        <h3>{{note}}</h3>
+                        <p>{{value_dict.content}}</p>
+                        <div class="note-date">{{value_dict.created_at}}</div>
+                        <form method="post" action="{% url 'delete_note_page_path' value_dict.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="button-delete-note">✖</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 {% endblock %}
