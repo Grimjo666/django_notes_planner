@@ -8,23 +8,9 @@
     {% include 'includes/sidebar.html' %}
     <div class="add-note-form">
     <h2>Добавить новую заметку</h2>
-    <form method="post" action="{% url 'save_note_page_path' %}">
+    <form method="post" action="{% url 'add_note_page_path' %}">
         {% csrf_token %}
-        <!-- Поля для добавления новой заметки -->
-        <label for="title">Заголовок:</label>
-        <input type="text" id="title" name="title" required><br>
-
-        <label for="content">Содержание:</label>
-        <textarea id="content" name="content" ></textarea><br>
-
-        <label for="category">Категория:</label>
-        <select id="category" name="category_id" required>
-            <option value="0">---</option>
-            {% for category in category_data %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
-            {% endfor %}
-        </select><br>
-
+        {{ form.as_p }}
         <button type="submit">Сохранить</button>
     </form>
 </div>

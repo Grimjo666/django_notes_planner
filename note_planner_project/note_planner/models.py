@@ -4,8 +4,9 @@ from transliterate import translit
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=False)
     latin_name = models.CharField(max_length=100, default='', blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     @staticmethod
     def custom_translit(text):
@@ -18,11 +19,11 @@ class Category(models.Model):
         return result
 
     def save(self, *args, **kwargs):
-        self.latin_name = self.custom_translit(self.name)
+        self.latin_name = self.custom_translit(self.name.lower())
         super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name} - {self.latin_name}'
+        return f'{self.name}'
 
 
 class Note(models.Model):
@@ -45,5 +46,3 @@ class Task(models.Model):
 
     def __str__(self):
         return f'Задача: {self.title}'
-
-

@@ -89,7 +89,7 @@
 
 }
 
-.category-button {
+.category-button, .add-category-button {
     background-color: var(--sidebar_background);
     color: white;
     border: none;
@@ -98,7 +98,8 @@
     border-radius: 5px;
 }
 
-.category-button:hover {
+.category-button:hover, .add-category-button:hover{
     background-color: var(--font_color_activ);
     color: var(--background_color);
 }
+

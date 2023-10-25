@@ -17,7 +17,7 @@
         <h2>Заметки</h2>
         <div class="category-panel">
             <form method="get" action="{% url 'notes_page_path' %}">
-                <button class="category-button" type="submit" name="category" value="all">Все</button>
+                <button class="add-category-button" type="submit" name="category" value="add-category">+</button>
                 {% for name, latin_name in categories_tuple %}
                     <button class="category-button" type="submit" name="category" value="{{ latin_name }}">{{ name }}</button>
                 {% endfor %}
