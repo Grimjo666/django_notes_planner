@@ -19,7 +19,7 @@ class Category(models.Model):
         return result
 
     def save(self, *args, **kwargs):
-        self.latin_name = self.custom_translit(self.name.lower())
+        self.latin_name = self.custom_translit(self.name)
         super(Category, self).save(*args, **kwargs)
 
     def __str__(self):

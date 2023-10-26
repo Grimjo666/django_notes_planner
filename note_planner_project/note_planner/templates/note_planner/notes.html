@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="{% static 'css/notes.css' %}">
 {% endblock %}
 
+{% block js_scripts %}
+    <script src="{% static 'js/show_add_category_block.js' %}"></script>
+{% endblock %}
+
 {% block title %}
     <title>Заметки</title>
 {% endblock %}
@@ -16,6 +20,13 @@
     <div class="notes-block">
         <h2>Заметки</h2>
         <div class="category-panel">
+            <div id="category-form" style="display: none;">
+                <form method="POST" action="{% url 'add_note_category_page_path' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit">Сохранить</button>
+                </form>
+            </div>
             <form method="get" action="{% url 'notes_page_path' %}">
                 <button class="add-category-button" type="submit" name="category" value="add-category">+</button>
                 {% for name, latin_name in categories_tuple %}

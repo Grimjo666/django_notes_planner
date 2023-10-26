@@ -35,6 +35,9 @@ class AddCategory(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name']
-        labels = {
-            'name': 'Укажите имя категории'
-        }
+
+    name = forms.CharField(max_length=100,
+                           required=False,
+                           widget=forms.TextInput(attrs={'class': 'input-add-category'}),
+                           label=''
+                           )

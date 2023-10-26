@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, Http404
 from .models import Note, Task, Category
 from django.contrib.auth.models import User
-from .forms import RegistrationForm, NoteForm
+from .forms import RegistrationForm, NoteForm, AddCategory
 
 
 def notes_page(request):
@@ -21,7 +21,7 @@ def notes_page(request):
 
     if category_response == 'add-category':
         pass
-
+    form = AddCategory(request.GET)
     notes_data = Note.objects.all()
     notes = dict()
 
@@ -36,6 +36,7 @@ def notes_page(request):
     context = {
         'notes_dict': notes,
         'categories_tuple': categories,
+        'form': form
     }
 
     return render(request, 'note_planner/notes.html', context=context)
@@ -82,17 +83,21 @@ def add_note_page(request):
             form = NoteForm(user)
         return render(request, 'note_planner/add_note.html', context={'form': form})
     else:
-        return render(request, 'login.html')
+        return redirect('login_page_path')
 
 
-def save_note(request):
-    post_dict = request.POST
-    title = post_dict.get('title')
-    content = post_dict.get('content')
-    category = post_dict.get('category')
+def add_note_category(request):
+    user = request.user
+    if user.is_authenticated:
+        post_dict = request.POST
+        category_name = post_dict.get('name')
+        if category_name != '':
+            latin_name = Category.custom_translit(category_name)
+            Category.objects.create(name=category_name, latin_name=latin_name, user=user)
 
-    print(post_dict)
-    return redirect('notes_page_path')
+        return redirect('notes_page_path')
+    else:
+        return redirect('login_page_path')
 
 
 def tasks_page(request):
