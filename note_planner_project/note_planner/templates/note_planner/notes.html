@@ -7,6 +7,8 @@
 
 {% block js_scripts %}
     <script src="{% static 'js/show_add_category_block.js' %}"></script>
+    <script src="{% static 'js/del_note_category.js' %}"></script>
+
 {% endblock %}
 
 {% block title %}
@@ -16,6 +18,8 @@
 
 
 {% block content %}
+    <div class="overlay" id="overlay"></div>
+
     {% include 'includes/sidebar.html' %}
     <div class="notes-block">
         <h2>Заметки</h2>
@@ -32,6 +36,7 @@
                 {% for name, latin_name in categories_tuple %}
                     <button class="category-button" type="submit" name="category" value="{{ latin_name }}">{{ name }}</button>
                 {% endfor %}
+                <button class="del-category-button" type="submit" name="category" value="del-category">x</button>
             </form>
         </div>
             <div class="note-items">

@@ -16,11 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from note_planner.views import login_page, register_page
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('note_planner.urls')),
-    path('login', login_page, name='login_page_path'),
-    path('register', register_page, name='register_page_path')
+    path("__debug__/", include("debug_toolbar.urls")),
 ]

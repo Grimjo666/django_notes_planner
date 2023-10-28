@@ -1,0 +1,35 @@
+.statistic-block {
+    background-color: var(--block_bg_color);
+    padding: 10px;
+    text-align: center; /* Центрируем содержимое */
+}
+
+.statistic-block h2 {
+    margin: 10px 0 20px; /* Убираем лишние отступы */
+}
+
+.statistic-block p {
+    margin-bottom: 20px; /* Добавляем отступ вниз */
+}
+
+#button-login,
+#button-register {
+    background-color: var(--block_bg_color);
+    color: var(--font_color);
+    border: none;
+    padding: 20px 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: auto;
+    margin: auto;
+    display: inline-block;
+    transition: background-color 0.3s, color 0.3s; /* Добавляем плавные переходы */
+    font-size: 120%;
+    padding: 15px;
+}
+
+#button-login:hover,
+#button-register:hover {
+    background-color: var(--font_color_activ); /* Обновляем цвет при наведении */
+    color: var(--background_color); /* Обновляем цвет текста при наведении */
+}

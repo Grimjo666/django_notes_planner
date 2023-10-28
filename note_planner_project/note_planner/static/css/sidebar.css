@@ -1,0 +1,58 @@
+.sidebar {
+    height: 100%;
+    width: 150px;
+    background-color: var(--sidebar_background);
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 15px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin-bottom: 15px;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: var(--font_color);
+    font-weight: bold;
+}
+
+.sidebar ul li a:hover {
+    text-decoration: none;
+    color: var(--font_color_activ);
+    font-weight: bold;
+}
+
+.user-block {
+    position: absolute;
+    bottom: 0;
+    width: 80%;
+    padding-bottom: 40px;
+}
+
+.hidden-user-block {
+    display: none;
+}
+
+.inner-user-block {
+    display: flex; /* Используем flexbox для расположения элементов в ряд */
+    align-items: center; /* Выравниваем элементы по центру по вертикали */
+    padding-left: 7px;
+}
+
+.inner-user-block:hover {
+    background-color: var(--background_color);
+    border-radius: 4px;
+}
+
+.inner-user-block img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px; /* Добавляем немного отступа между изображением и текстом */
+}

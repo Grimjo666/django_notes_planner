@@ -1,7 +1,33 @@
+{% load static %}
+
+{% block css_style %}
+<link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+{% endblock %}
+
+{% block js_scripts %}
+<script src="{% static 'js/sidebar.js' %}"></script>
+{% endblock %}
+
 <div class="sidebar">
     <ul>
+        <li><a href="{% url 'index_page_path' %}">Главная</a></li>
         <li><a href="{% url 'notes_page_path' %}">Заметки</a></li>
         <li><a href="{% url 'tasks_page_path' %}">Задачи</a></li>
         <li class="archive-link"><a href="{% url 'archive_page_path' %}">Архив</a></li>
     </ul>
+    {% if user.is_authenticated  %}
+        <div class="user-block">
+            <div class="hidden-user-block">
+                <ul>
+                    <li><a href="">Профиль</a></li>
+                    <li><a href="">Настройки</a></li>
+                    <li><a href="{% url 'logout' %}">Выйти</a></li>
+                </ul>
+            </div>
+            <div class="inner-user-block">
+                <img src="{% static 'image/user_logo.png' %}" alt="">
+                <p>{{ user|title }}</p>
+            </div>
+        </div>
+    {% endif %}
 </div>

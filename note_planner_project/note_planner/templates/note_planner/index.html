@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css_style %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+
+{% block title %}
+<title>Главная</title>
+{% endblock %}
+
+{% block content %}
+{% include 'includes/sidebar.html' %}
+<div class="statistic-block">
+    <div class="inner-statistic-block">
+        <h2>Статистика</h2>
+        {% if user.is_authenticated %}
+        <p>Статистика пользователя: {{ user }}</p>
+        {% else %}
+        <p>Что бы получить свою статистику вам необходимо войти в свой аккаунт или зарегистрироваться</p>
+        <a href="{% url 'login_page_path' %}">
+            <div id="button-login">Войти</div>
+        </a>
+        <a href="{% url 'register_page_path' %}">
+        <div id="button-register">
+            Зарегистрироваться
+        </div>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

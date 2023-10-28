@@ -43,7 +43,16 @@
     color: var(--font_color);
 }
 
-.button-delete-note:hover {
+.del-category-button {
+    background-color: var(--sidebar_background);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.button-delete-note:hover, .del-category-button:hover {
     background-color: var(--delete_button_bg);
     color: black;
 }
@@ -98,6 +107,11 @@
     border-radius: 5px;
 }
 
+.category-button {
+    position: relative;
+    z-index: 2;
+}
+
 .category-button:hover, .add-category-button:hover{
     background-color: var(--font_color_activ);
     color: var(--background_color);
@@ -141,4 +155,15 @@
 
 #category-form button:hover {
     background-color: var(--font_color_activ) /* Задает цвет фона при наведении */
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Затемненный цвет */
+    z-index: 1;
 }

@@ -1,5 +1,7 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from .models import Note, Category
+from django.contrib.auth.models import User
 
 
 class RegistrationForm(forms.Form):
@@ -39,5 +41,10 @@ class AddCategory(forms.ModelForm):
     name = forms.CharField(max_length=100,
                            required=False,
                            widget=forms.TextInput(attrs={'class': 'input-add-category'}),
-                           label=''
-                           )
+                           label='')
+
+
+class UserAuthenticationForm(AuthenticationForm):
+    model = User
+    fields = ['username', 'password']
+

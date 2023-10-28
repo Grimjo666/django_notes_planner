@@ -1,17 +1,36 @@
 from django.shortcuts import render, redirect, Http404
 from .models import Note, Task, Category
-from django.contrib.auth.models import User
-from .forms import RegistrationForm, NoteForm, AddCategory
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+
+from note_planner import forms
+
+
+def index_page(request):
+    user = request.user
+    user_authenticated = True
+
+    if not user.is_authenticated:
+        user_authenticated = False
+
+    context = {
+        'user': user
+    }
+    return render(request, 'note_planner/index.html', context=context)
 
 
 def notes_page(request):
     user = request.user
 
-    Category.objects.get_or_create(
-        user=user,
-        name='Все',
-        defaults={'latin_name': Category.custom_translit('Все')}  # Если объект создается, задаем дополнительные поля
-    )
+    if not user.is_authenticated:
+        return redirect('login_page_path')
+
+    existing_category = Category.objects.filter(name='Все', user=user).first()
+
+    if not existing_category:
+        # Если категории 'Все' нет, создаем новую
+        latin_name = Category.custom_translit('Все')
+        Category.objects.create(name='Все', latin_name=latin_name, user=user)
 
     category_data = Category.objects.all().filter(user=user)
     sorted_key = lambda x: x[0] != 'Все'  # функция для сортировки категорий для перемещения "Все" на первое место
@@ -19,14 +38,12 @@ def notes_page(request):
 
     category_response = request.GET.get('category')
 
-    if category_response == 'add-category':
-        pass
-    form = AddCategory(request.GET)
-    notes_data = Note.objects.all()
+    form = forms.AddCategory(request.GET)
+    notes_data = Note.objects.all().filter(user=user)
     notes = dict()
 
     for note in notes_data:
-        if category_response == note.category.latin_name or category_response in ('vse', None):
+        if category_response == note.category.latin_name or category_response in ('Vse', None):
             notes[note.title] = {
                 'content': note.content,
                 'created_at': note.created_at,
@@ -52,52 +69,53 @@ def add_note_page(request):
     user = request.user
 
     # Проверяем авторизован ли пользователь
-    if user.is_authenticated:
-
-        if request.method == 'POST':
-            form = NoteForm(user, request.POST)
-
-            if form.is_valid():
-                # Получаем данные из формы
-                title = form.cleaned_data['title']
-                content = form.cleaned_data['content']
-                category_name = form.cleaned_data['category']  # Получаем название категории из формы
-
-                if category_name is None:
-                    category_name = 'Все'
-
-                try:
-                    category = Category.objects.get(name=category_name)
-                except:
-                    latin_name = Category.custom_translit(category_name)  # Переводим имя категории
-                    category = Category.objects.create(name=category_name, latin_name=latin_name, user=user)
-
-                new_note = Note.objects.create(
-                    title=title,
-                    content=content,
-                    category=category,  # Передаем объект категории
-                    user=user  # Предполагаем, что заметка связана с текущим пользователем
-                )
-                return redirect('notes_page_path')
-        else:
-            form = NoteForm(user)
-        return render(request, 'note_planner/add_note.html', context={'form': form})
-    else:
+    if not user.is_authenticated:
         return redirect('login_page_path')
+
+    if request.method == 'POST':
+        form = forms.NoteForm(user, request.POST)
+
+        if form.is_valid():
+            # Получаем данные из формы
+            title = form.cleaned_data['title']
+            content = form.cleaned_data['content']
+            category_name = form.cleaned_data['category']  # Получаем название категории из формы
+
+            category = Category.objects.get(name=category_name, user=user)
+
+            new_note = Note.objects.create(
+                title=title,
+                content=content,
+                category=category,  # Передаем объект категории
+                user=user  # Предполагаем, что заметка связана с текущим пользователем
+            )
+            return redirect('notes_page_path')
+    else:
+        form = forms.NoteForm(user)
+    return render(request, 'note_planner/add_note.html', context={'form': form})
 
 
 def add_note_category(request):
     user = request.user
-    if user.is_authenticated:
-        post_dict = request.POST
-        category_name = post_dict.get('name')
-        if category_name != '':
-            latin_name = Category.custom_translit(category_name)
+
+    if not user.is_authenticated:
+        return redirect('login_page_path')
+
+    post_dict = request.POST
+    category_name = post_dict.get('name')
+    if category_name != '':
+        latin_name = Category.custom_translit(category_name)
+        # Проверяем существование категории с таким именем для данного пользователя
+        existing_category = Category.objects.filter(name=category_name, user=user).first()
+
+        if existing_category:
+            # Категория уже существует, обработайте этот случай здесь
+            pass
+        else:
+            # Категория не существует, создаем новую категорию
             Category.objects.create(name=category_name, latin_name=latin_name, user=user)
 
-        return redirect('notes_page_path')
-    else:
-        return redirect('login_page_path')
+    return redirect('notes_page_path')
 
 
 def tasks_page(request):
@@ -119,14 +137,36 @@ def archive_page(request):
 
 
 def login_page(request):
-    return render(request, 'login.html')
+    if request.method == 'POST':
+        form = forms.UserAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('notes_page_path')
+    else:
+        form = forms.UserAuthenticationForm()
+    context = {
+        'form': form
+    }
+    return render(request, 'note_planner/registration/login.html', context=context)
 
 
 def register_page(request):
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
-            print('Пользователь зарегистрирован')
+            user = form.save()
+            login(request, user)
+            return redirect('notes_page_path')
     else:
-        form = RegistrationForm
-    return render(request, 'register.html', context={'form': form})
+        form = UserCreationForm()
+    return render(request, 'note_planner/registration/register.html', context={'form': form})
+
+
+def logout_page(request):
+    logout(request)
+
+    return redirect('index_page_path')
