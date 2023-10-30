@@ -1,20 +1,69 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load my_filters %}
+
+    <div class="add-task">
+        <form method="post" action="{% url 'add_task_page' %}">
+            {% csrf_token %}
+            <button type="submit" class="button-add-task">+</button>
+        </form>
+    </div>
 
 {% block title %}
-    <title>Задачи</title>
+<title>Задачи</title>
+{% endblock %}
+
+{% block css_style %}
+<link rel="stylesheet" href="{% static 'css/tasks.css' %}">
 {% endblock %}
 
 {% block content %}
-    {% include 'includes/sidebar.html' %}
-    <div class="tasks-block">
-        {% for task_name, value in tasks_dict.items %}
-            <div class="tasks-items">
-                <h2>{{ task_name }}</h2>
-                <p>
-                    Дедлайн: {{ value.0 }}<br>Приоритет: {{ value.1 }}
-                </p>
-            </div>
-        {% endfor %}
-    </div>
+{% include 'includes/sidebar.html' %}
+<div class="tasks-block">
+
+    {% for task_name, value in tasks_dict.items%}
+    <label class="checkbox-label">
+        <div class="check-box-container">
+            <input type="checkbox" id="task-checkbox" name="highlight">
+        </div>
+        <div class="tasks-items">
+
+            <h3>{{ task_name }}</h3>
+            <p>
+                Дедлайн: {{ value|get:"due_date" }}
+            </p>
+
+            <form method="post" action="{% url 'done_task_path' value|get:'id' %}">
+                {% csrf_token %}
+                <button title="Выполнено" type="submit" class="button-done-task">✔</button>
+            </form>
+            <form>
+                {% csrf_token %}
+                <button title="Изменить" type="submit" class="button-edit-task">✐</button>
+            </form>
+            <form method="post" action="{% url 'delete_task_path' value|get:'id' %}">
+                {% csrf_token %}
+                <button title="Удалить" type="submit" class="button-delete-task">✖</button>
+            </form>
+        </div>
+    </label>
+    {% endfor %}
+</div>
+<div class="bottom-panel">
+    <form method="post" action="{% url 'add_task_path' %}">
+        {% csrf_token %}
+        <button title="Добавить" class="button-add-task">+</button>
+    </form>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        <button title="В архив" class="button-archive-task">В архив</button>
+    </form>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        <button title="Удалить" class="button-delete-selected-tasks">Удалить</button>
+    </form>
+</div>
+
 {% endblock %}

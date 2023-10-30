@@ -1,0 +1,84 @@
+.content {
+    padding-left: 10px;
+}
+
+.tasks-items {
+    background-color: var(--block_bg_color);
+    padding: 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.tasks-items h3 {
+    margin-top: 0px;
+}
+
+.tasks-items p {
+    margin: 0px;
+}
+
+.button-delete-task,  .button-edit-task, .button-done-task {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: var(--block_bg_color);
+    border: none;
+    color: var(--font_color);
+    font-size: 100%;
+}
+
+ .button-edit-task {
+    right: 40px;
+ }
+
+.button-done-task {
+    right: 75px;
+}
+
+.button-edit-task:hover,
+.button-done-task:hover,
+.button-add-task:hover,
+.button-archive-task:hover  {
+    background-color: var(--font_color_activ);
+    color: black;
+    border-radius: 3px;
+ }
+
+.button-delete-task:hover, .button-delete-selected-tasks:hover {
+    background-color: var(--delete_button_bg);
+    color: black;
+    border-radius: 3px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.check-box-container {
+    margin-right: 10px;
+}
+
+.button-add-task,
+.button-archive-task,
+.button-delete-selected-tasks {
+    background-color: var(--block_bg_color);
+    border: none;
+    color: var(--font_color);
+    font-size: 16px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.bottom-panel {
+    position: fixed;
+    bottom: 0;
+    left: 220px;
+    background-color: var(--block_bg_color);
+    padding: 10px;
+    display: flex;
+    box-shadow: 0px -2px 10px 0px rgba(0, 0, 0, 0.1); /* Добавляем тень снизу */
+}

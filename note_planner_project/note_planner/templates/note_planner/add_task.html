@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load my_filters %}
+
+{% block content %}
+{% include 'includes/sidebar.html' %}
+<form method="POST" action="{% url 'add_task_path' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+</form>
+{% endblock %}

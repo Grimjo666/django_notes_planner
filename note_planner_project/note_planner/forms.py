@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Note, Category
+from .models import Note, Category, Task
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class RegistrationForm(forms.Form):
@@ -48,3 +49,27 @@ class UserAuthenticationForm(AuthenticationForm):
     model = User
     fields = ['username', 'password']
 
+
+class DeleteCategoryForm(forms.Form):
+    category_id = forms.IntegerField(widget=forms.HiddenInput())
+
+
+class UpdateTaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'due_date', 'priority']
+
+
+class AddTaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'due_date', 'priority']
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def clean_due_date(self):
+        due_date = self.cleaned_data.get('due_date')
+        if due_date and due_date < timezone.now():
+            raise forms.ValidationError("Выберите дату, которая еще не прошла.")
+        return due_date

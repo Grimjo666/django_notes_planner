@@ -65,6 +65,16 @@ def delete_note_page(request, note_id):
     return redirect('notes_page_path')
 
 
+def delete_note_category(request):
+    print(request.POST)
+    if request.method == 'POST':
+        form = forms.DeleteCategoryForm(request.POST)
+        print(form.is_valid())
+        if form.is_valid():
+            print(form.cleaned_data['category_id'])
+    return redirect('notes_page_path')
+
+
 def add_note_page(request):
     user = request.user
 
@@ -119,12 +129,49 @@ def add_note_category(request):
 
 
 def tasks_page(request):
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('login_page_path')
     data = Task.objects.all()
-    tasks = {task.title: (task.due_date, task.priority) for task in data if task.completed == 0}
+    tasks = {task.title: {'due_date': task.due_date, 'priority': task.priority, 'id': task.id} for task in data if
+             task.completed == 0}
+
+    form = forms.UpdateTaskForm
+
     context = {
-        'tasks_dict': tasks
+        'tasks_dict': tasks,
+        'form': form
     }
     return render(request, 'note_planner/tasks.html', context=context)
+
+
+def add_task(request):
+    if request.method == 'POST':
+        form = forms.AddTaskForm(request.POST)
+        if form.is_valid():
+
+            Task.objects.create(
+                title=form.cleaned_data['title'],
+                due_date=form.cleaned_data['due_date'],
+                priority=form.cleaned_data['priority'],
+                user=request.user
+            )
+
+            return redirect('tasks_page_path')
+
+        return render(request, 'note_planner/add_task.html', context={'form': form})
+
+
+def delete_task(request, task_id):
+    if request.method == 'POST':
+        Task.objects.filter(user=request.user, id=task_id).delete()
+    return redirect('tasks_page_path')
+
+
+def done_task(request, task_id):
+    if request.method == 'POST':
+        Task.objects.filter(user=request.user, id=task_id).update(completed=True)
+        return redirect('tasks_page_path')
 
 
 def archive_page(request):
@@ -145,7 +192,7 @@ def login_page(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('notes_page_path')
+                return redirect('index_page_path')
     else:
         form = forms.UserAuthenticationForm()
     context = {
