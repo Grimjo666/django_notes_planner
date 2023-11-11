@@ -2,20 +2,21 @@
 {% load static %}
 <html lang="en">
 <head>
-     <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block title %}
-        <title>Планировщик</title>
+    <title>Планировщик</title>
     {% endblock %}
-    {% block js_scripts %} {% endblock %}
+    {% block js_scripts %}{% endblock %}
     <!-- Подключение ваших стилей CSS -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block css_style %}{% endblock %}
 </head>
 <body>
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
+<div class="overlay hidden"></div>
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
 
 </body>
 </html>

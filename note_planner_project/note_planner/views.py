@@ -1,29 +1,21 @@
-from django.shortcuts import render, redirect, Http404
-from .models import Note, Task, Category
+from django.shortcuts import render, redirect, Http404, get_object_or_404
+from .models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 from note_planner import forms
 
 
 def index_page(request):
-    user = request.user
-    user_authenticated = True
-
-    if not user.is_authenticated:
-        user_authenticated = False
-
-    context = {
-        'user': user
-    }
-    return render(request, 'note_planner/index.html', context=context)
+    return render(request, 'note_planner/index.html')
 
 
+@login_required
 def notes_page(request):
     user = request.user
-
-    if not user.is_authenticated:
-        return redirect('login_page_path')
 
     existing_category = Category.objects.filter(name='Все', user=user).first()
 
@@ -128,38 +120,75 @@ def add_note_category(request):
     return redirect('notes_page_path')
 
 
-def tasks_page(request):
-    user = request.user
-    if not user.is_authenticated:
-        return redirect('login_page_path')
-    data = Task.objects.all()
-    tasks = {task.title: {'due_date': task.due_date, 'priority': task.priority, 'id': task.id} for task in data if
-             task.completed == 0}
+@method_decorator(login_required, name='dispatch')
+class TasksPageView(View):
+    template_name = 'note_planner/tasks.html'
 
-    form = forms.UpdateTaskForm
+    def get(self, request):
+        user = request.user
+        # Если пользователь не авторизован, делаем редирект на страницу авторизации
+        if not user.is_authenticated:
+            return redirect('login_page_path')
 
-    context = {
-        'tasks_dict': tasks,
-        'form': form
-    }
-    return render(request, 'note_planner/tasks.html', context=context)
+        tasks_data = Task.objects.all().filter(user=user, completed=0).order_by('priority')
+        subtasks_data = SubTask.objects.filter(task__in=tasks_data)
+        tasks_dict = dict()
 
+        # Проходимся по задачам пользователя и создаём словарь с данными
+        for task in tasks_data:
 
-def add_task(request):
-    if request.method == 'POST':
-        form = forms.AddTaskForm(request.POST)
-        if form.is_valid():
+            # Проходимся по списку подзадач
+            subtasks_list = list()
+            for sub in subtasks_data:
 
-            Task.objects.create(
-                title=form.cleaned_data['title'],
-                due_date=form.cleaned_data['due_date'],
-                priority=form.cleaned_data['priority'],
-                user=request.user
-            )
+                # Проверяем связана ли подзадача с основной задачей
+                if sub.task == task:
+                    subtasks_list.append({'title': sub.title,
+                                          'description': sub.description,
+                                          'completed': sub.completed,
+                                          'id': sub.id
+                                          })
 
-            return redirect('tasks_page_path')
+            tasks_dict[task.title] = {'due_date': task.due_date,
+                                      'description': task.description,
+                                      'due_time': task.due_time,
+                                      'priority': task.priority,
+                                      'id': task.id,
+                                      'subtasks_list': subtasks_list}
 
-        return render(request, 'note_planner/add_task.html', context={'form': form})
+        context = {
+            'tasks_dict': tasks_dict,
+            'add_task_form': forms.AddTaskForm(user),
+            'add_subtask_form': forms.AddSubTaskForm()
+        }
+        return render(request, self.template_name, context=context)
+
+    def post(self, request):
+        form_type = request.POST.get('form_type')
+
+        if form_type == 'add_task':
+            add_task_form = forms.AddTaskForm(request.user, request.POST)
+            if add_task_form.is_valid():
+                add_task_form.save(commit=False)
+                add_task_form.instance.user = request.user
+                add_task_form.save()
+
+        if form_type == 'add_subtask':
+            add_subtask_form = forms.AddSubTaskForm(request.POST)
+
+            # Проверяем форму на валидность
+            if add_subtask_form.is_valid() and add_subtask_form.cleaned_data['title']:
+                # Получаем ID задачи, к которой относится подзадача
+                task_id = request.POST.get('task_id')
+                task_model = Task.objects.all().get(id=task_id)
+                # Сохраняем подзадачу
+                SubTask.objects.create(
+                    title=add_subtask_form.cleaned_data['title'],
+                    description=add_subtask_form.cleaned_data['description'],
+                    task=task_model
+                )
+
+        return redirect('tasks_page_path')
 
 
 def delete_task(request, task_id):
@@ -168,10 +197,27 @@ def delete_task(request, task_id):
     return redirect('tasks_page_path')
 
 
+def delete_subtask(request, subtask_id):
+    if request.method == 'POST':
+        SubTask.objects.filter(id=subtask_id).delete()
+    return redirect('tasks_page_path')
+
+
 def done_task(request, task_id):
     if request.method == 'POST':
         Task.objects.filter(user=request.user, id=task_id).update(completed=True)
+
         return redirect('tasks_page_path')
+
+
+def switch_subtask(request, subtask_id):
+    if request.method == 'POST':
+        subtask = get_object_or_404(SubTask, id=subtask_id)
+        # Инвертируем значение поля completed
+        subtask.completed = not subtask.completed
+        # Сохраняем изменения
+        subtask.save()
+    return redirect('tasks_page_path')
 
 
 def archive_page(request):
@@ -192,7 +238,12 @@ def login_page(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('index_page_path')
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                else:
+                    return redirect('index_page_path')
+
     else:
         form = forms.UserAuthenticationForm()
     context = {

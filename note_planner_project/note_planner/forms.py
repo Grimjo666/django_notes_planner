@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Note, Category, Task
+from .models import *
 from django.contrib.auth.models import User
-from django.utils import timezone
+from datetime import datetime
 
 
 class RegistrationForm(forms.Form):
@@ -61,15 +61,61 @@ class UpdateTaskForm(forms.ModelForm):
 
 
 class AddTaskForm(forms.ModelForm):
+    def __init__(self, user, *args, **kwargs):
+        super(AddTaskForm, self).__init__(*args, **kwargs)
+        self.user = user
+
+    def save(self, commit=True):
+        # Теперь вы можете использовать self.user в методе save() для доступа к пользователю
+        task = super(AddTaskForm, self).save(commit=False)
+        task.user = self.user
+        if commit:
+            task.save()
+        return task
+
     class Meta:
         model = Task
-        fields = ['title', 'due_date', 'priority']
+        fields = ['title', 'description', 'due_date', 'due_time', 'priority']
         widgets = {
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'title': forms.TextInput(attrs={'class': 'add-task-title'}),
+            'description': forms.Textarea(attrs={'class': 'add-task-textarea'}),
+            'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'due-date-input'}),
+            'due_time': forms.TimeInput(attrs={'type': 'time', 'class': 'due-time-input'}),
+            'priority': forms.Select(attrs={'class': 'add-task-select-priority'})
+        }
+        labels = {
+            'title': 'Название задачи',
+            'description': 'Описание (не обязательно)',
+            'due_date': 'Дата дедлайна',
+            'due_time': 'Время (не обязательно)',
+            'priority': 'Приоритет'
+        }
+
+        error_messages = {
+            'title': {
+                'required': 'Пожалуйста, введите название задачи.',
+            },
+            'due_date': {
+                'required': 'Пожалуйста, выберите дату дедлайна.',
+            },
+            'priority': {
+                'required': 'Пожалуйста, выберите приоритет.',
+            },
         }
 
     def clean_due_date(self):
         due_date = self.cleaned_data.get('due_date')
-        if due_date and due_date < timezone.now():
+
+        if due_date and due_date < datetime.now().date():
             raise forms.ValidationError("Выберите дату, которая еще не прошла.")
         return due_date
+
+
+class AddSubTaskForm(forms.ModelForm):
+    class Meta:
+        model = SubTask
+        fields = ['title', 'description']
+        labels = {
+            'title': 'Название подзадачи',
+            'description': 'Описание (не обязательно)',
+        }

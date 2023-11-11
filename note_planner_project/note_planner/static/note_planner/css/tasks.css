@@ -1,0 +1,181 @@
+.content {
+    padding-left: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.tasks-items {
+    background-color: var(--block_bg_color);
+    padding: 10px;
+    padding-left: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border-radius: 3px;
+    color: #c9c9c9;
+    border-left: 10px solid  #383838;
+}
+
+.violet {
+    border-color: #440673;
+}
+
+.green {
+    border-color: #06734b;
+}
+
+.tasks-items h3 {
+    margin-top: 0px;
+}
+
+.tasks-items p {
+    margin: 0px;
+}
+
+.more-detailed-task {
+    background-color: var(--block_bg_color);
+    width: 90%;
+    margin: 0 auto;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 2px solid var(--block_border_color);
+}
+
+.task-description-title {
+    margin-top: 0;
+}
+
+.add-subtask-bottom {
+    color: var(--font_color);
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.button-delete-task,  .button-edit-task, .button-done-task {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: var(--block_bg_color);
+    border: none;
+    color: var(--font_color);
+    font-size: 100%;
+    padding: 0px 5px;
+}
+
+ .button-edit-task {
+    right: 40px;
+ }
+
+.button-done-task {
+    right: 75px;
+}
+
+.button-edit-task:hover,
+.button-done-task:hover,
+.button-add-task:hover,
+.button-archive-task:hover  {
+    background-color: var(--font_color_activ);
+    color: black;
+    border-radius: 3px;
+ }
+
+.button-delete-task:hover, .button-delete-selected-tasks:hover {
+    background-color: var(--delete_button_bg);
+    color: black;
+    border-radius: 3px;
+}
+
+.button-show-description {
+    position: absolute;
+    bottom: 0;
+    left: 50%; /* Позиционируем кнопку по центру горизонтально */
+    transform: translateX(-50%); /* Корректируем позицию на половину ширины кнопки */
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--font_color);
+}
+
+.button-show-description:hover {
+    background: none;
+    color: var(--font_color_activ);
+}
+
+.check-box-container {
+    margin-right: 10px;
+}
+
+.button-add-task,
+.button-archive-task,
+.button-delete-selected-tasks {
+    background-color: var(--block_bg_color);
+    border: none;
+    color: var(--font_color);
+    font-size: 16px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.bottom-panel {
+    position: fixed;
+    bottom: 0;
+    left: 220px;
+    background-color: var(--block_bg_color);
+    padding: 10px;
+    display: flex;
+    box-shadow: 0px -2px 10px 0px rgba(0, 0, 0, 0.1); /* Добавляем тень снизу */
+}
+
+.add-task-block {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    background-color: var(--block_bg_color);
+    border-radius: 5px;
+    z-index: 3;
+    font-size: 120%;
+}
+
+.errorlist {
+    display: none;
+}
+
+.button-close-task-form {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--font_color);
+    background-color: var(--block_bg_color);
+    border: none;
+}
+
+.subtask-title, .subtask-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.button-show-subtask-description {
+    margin-top: 2px;
+}
+
+.button-done-subtask, .button-show-subtask-description, .button-delete-subtask {
+    color: #454545;
+    width: 10px;
+    font-weight: bold;
+}
+
+.button-done-subtask:hover, .button-show-subtask-description:hover {
+    background: none;
+    color: var(--font_color_activ);
+}
+
+.subtask-item p {
+    margin-top: 5px;
+}

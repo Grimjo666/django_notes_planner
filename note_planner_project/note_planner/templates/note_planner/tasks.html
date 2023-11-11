@@ -2,65 +2,129 @@
 {% load static %}
 {% load my_filters %}
 
-    <div class="add-task">
-        <form method="post" action="{% url 'add_task_page' %}">
-            {% csrf_token %}
-            <button type="submit" class="button-add-task">+</button>
-        </form>
-    </div>
+{% block js_scripts %}
+<script src="{% static 'note_planner/js/add_task_form.js' %}"></script>
+<script src="{% static 'note_planner/js/more-task-detailed-logic.js' %}"></script>
+{% endblock %}
 
 {% block title %}
 <title>Задачи</title>
 {% endblock %}
 
 {% block css_style %}
-<link rel="stylesheet" href="{% static 'css/tasks.css' %}">
+<link rel="stylesheet" href="{% static 'note_planner/css/tasks.css' %}">
 {% endblock %}
 
 {% block content %}
 {% include 'includes/sidebar.html' %}
+
 <div class="tasks-block">
 
     {% for task_name, value in tasks_dict.items%}
-    <label class="checkbox-label">
-        <div class="check-box-container">
-            <input type="checkbox" id="task-checkbox" name="highlight">
-        </div>
-        <div class="tasks-items">
+        <div class="checkbox-label">
+            <div class="check-box-container">
+                <input type="checkbox" id="task-checkbox-{{value|get:'id'}}" name="highlight" value="{{ value.id }}">
+            </div>
 
-            <h3>{{ task_name }}</h3>
-            <p>
-                Дедлайн: {{ value|get:"due_date" }}
-            </p>
+            {% if value|get:"priority" == 1 %}
+            <div class="tasks-items violet">
+            {% elif value|get:"priority" == 2 %}
+            <div class="tasks-items green">
+            {% else %}
+            <div class="tasks-items">
+            {% endif %}
 
-            <form method="post" action="{% url 'done_task_path' value|get:'id' %}">
-                {% csrf_token %}
-                <button title="Выполнено" type="submit" class="button-done-task">✔</button>
-            </form>
-            <form>
-                {% csrf_token %}
-                <button title="Изменить" type="submit" class="button-edit-task">✐</button>
-            </form>
-            <form method="post" action="{% url 'delete_task_path' value|get:'id' %}">
-                {% csrf_token %}
-                <button title="Удалить" type="submit" class="button-delete-task">✖</button>
-            </form>
+                <h3>{{ task_name }}</h3>
+                <p>
+                    Дедлайн: {{ value|get:"due_date" }}
+                    {% if value|get:"due_time" %}
+                    - {{ value|get:"due_time" }}
+                    {% endif %}
+                </p>
+
+                <form method="post" action="{% url 'done_task_path' value|get:'id' %}">
+                    {% csrf_token %}
+                    <button title="Выполнено" type="submit" class="button-done-task">✔</button>
+                </form>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <button title="Изменить" type="submit" class="button-edit-task">✐</button>
+                </form>
+                <form method="post" action="{% url 'delete_task_path' value|get:'id' %}">
+                    {% csrf_token %}
+                    <button title="Удалить" type="submit" class="button-delete-task">✖</button>
+                </form>
+                <button type="button" class="button-show-description task-id-{{ value|get:'id' }}">▼</button>
+
+            </div>
+
         </div>
-    </label>
+        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden">
+            {% if value|get:"description" %}
+            <h3 class="task-description-title">Описание задачи</h3>
+            <div class="task-description-block">{{ value|get:"description" }}</div>
+            {% endif %}
+            <h3 class="task-subtask-title">Подзадачи:</h3>
+            <div class="subtask-item"><button type="button" class="add-subtask-bottom task-id-{{ value|get:'id' }}">+</button></div>
+            <div class="add-subtask-block task-id-{{ value|get:'id' }} hidden">
+                <form method="POST" action="{% url 'tasks_page_path' %}">
+                    {% csrf_token %}
+                    {{ add_subtask_form.as_p }}
+                    <input type="hidden" name="form_type" value="add_subtask">
+                    <input type="hidden" name="task_id" value="{{ value|get:'id' }}">
+                    <button type="submit" class="save-button task-id-{{ value|get:'id' }}">Сохранить</button>
+                </form>
+            </div>
+            {% for subtask in value|get:"subtasks_list" %}
+
+            <div class="subtask-item">
+                <div class="subtask-title">
+                    {% if subtask.completed %}
+                    <h4 class="cross-out-text">{{ subtask.title }}</h4>
+                    {% else %}
+                    <h4>{{ subtask.title }}</h4>
+                    {% endif %}
+                    <div class="subtask-buttons">
+                        <form method="post" action="{% url 'done_subtask_path' subtask|get:'id' %}">
+                            {% csrf_token %}
+                            <button title="Выполнено" type="submit" class="button-done-subtask">✔</button>
+                        </form>
+                        <button type="button" class="button-show-subtask-description subtask-id-{{ subtask|get:'id' }}">▼</button>
+                        <form method="post" action="{% url 'delete_subtask_path' subtask|get:'id' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="button-delete-subtask delete_button subtask-id-{{ subtask|get:'id' }}">✖</button>
+                        </form>
+                    </div>
+                </div>
+
+                <p class="subtask-description subtask-id-{{ subtask|get:'id' }} hidden">{{ subtask.description }}</p>
+            </div>
+            {% endfor %}
+        </div>
     {% endfor %}
 </div>
-<div class="bottom-panel">
-    <form method="post" action="{% url 'add_task_path' %}">
-        {% csrf_token %}
-        <button title="Добавить" class="button-add-task">+</button>
-    </form>
 
-    <form method="post" action="">
+<div class="add-task-block hidden">
+    <button type="submit" class="button-close-task-form">✖</button>
+    <form method="POST" action="{% url 'tasks_page_path' %}">
+        {% csrf_token %}
+        {{ add_task_form.as_p }}
+        <input type="hidden" name="form_type" value="add_task">
+        <button type="submit" class="save-button">Сохранить</button>
+    </form>
+</div>
+
+<div class="bottom-panel">
+
+    <button title="Добавить" class="button-add-task">+</button>
+
+
+    <form method="post" action="" >
         {% csrf_token %}
         <button title="В архив" class="button-archive-task">В архив</button>
     </form>
 
-    <form method="post" action="">
+    <form method="post" action="" id="task-checkbox">
         {% csrf_token %}
         <button title="Удалить" class="button-delete-selected-tasks">Удалить</button>
     </form>

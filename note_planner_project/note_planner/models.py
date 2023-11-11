@@ -38,11 +38,31 @@ class Note(models.Model):
 
 
 class Task(models.Model):
+
+    PRIORITY_CHOICES = [
+        (1, 'Высокий'),
+        (2, 'Средний'),
+        (3, 'Низкий')
+    ]
+
     title = models.CharField(max_length=100)
-    due_date = models.DateTimeField()
-    priority = models.IntegerField()
+    due_date = models.DateField()
+    due_time = models.TimeField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    priority = models.IntegerField(choices=PRIORITY_CHOICES, default=3)
     completed = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Задача: {self.title}'
+
+
+class SubTask(models.Model):
+    title = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    completed = models.BooleanField(default=False)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Подзадача: {self.title}'
+

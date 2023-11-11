@@ -76,6 +76,7 @@
 
 .button-add-note:hover {
     color: var(--font_color_activ);
+    background-color: var(--block_bg_color);
 }
 /* Медиа-запросы для средних экранов */
 @media (max-width: 768px) {
@@ -113,22 +114,7 @@
 }
 
 .input-add-category {
-    color: white;
-    background-color: var(--sidebar_background);
-    width: 90px; /* Устанавливаем ширину поля ввода */
-    height: 32px; /* Устанавливаем высоту поля ввода */
-    font-size: 16px; /* Устанавливаем размер шрифта */
-    padding: 5px; /* Добавляем внутренний отступ вокруг текста внутри поля ввода */
-    border: None; /* Устанавливаем границу с цветом #ccc */
-    border-radius: 5px; /* Добавляем закругленные углы */
-    box-sizing: border-box; /* Учитываем внутренние отступы и границу в общую ширину и высоту элемента */
-    margin-right: 5px;
-}
 
-.input-add-category:focus {
-    outline: none; /* Убираем контур фокуса при активации поля ввода */
-    border-color: var(--font_color_activ); /* Устанавливаем цвет границы при активации поля ввода */
-    box-shadow: 0 0 5px var(--font_color_activ); /* Добавляем тень при активации поля ввода */
 }
 
 #category-form p {
