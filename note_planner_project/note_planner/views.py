@@ -6,6 +6,8 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
+from datetime import datetime
+
 from note_planner import forms
 
 
@@ -194,6 +196,10 @@ class TasksPageView(View):
 def delete_task(request, task_id):
     if request.method == 'POST':
         Task.objects.filter(user=request.user, id=task_id).delete()
+
+    if request.POST.get('page') == 'archive':
+        return redirect('archive_page_path')
+
     return redirect('tasks_page_path')
 
 
@@ -205,7 +211,7 @@ def delete_subtask(request, subtask_id):
 
 def done_task(request, task_id):
     if request.method == 'POST':
-        Task.objects.filter(user=request.user, id=task_id).update(completed=True)
+        Task.objects.filter(user=request.user, id=task_id).update(completed=True, completed_at=datetime.now())
 
         return redirect('tasks_page_path')
 
@@ -221,8 +227,10 @@ def switch_subtask(request, subtask_id):
 
 
 def archive_page(request):
-    data = Task.objects.all()
-    tasks = {task.title: (task.due_date, task.priority) for task in data if task.completed == 1}
+    data = Task.objects.all().filter(completed=1)
+    tasks = {task.title: {'due_date': task.due_date,
+                          'completed_at': task.completed_at,
+                          'task_id': task.id} for task in data}
     context = {
         'archive_tasks': tasks
     }

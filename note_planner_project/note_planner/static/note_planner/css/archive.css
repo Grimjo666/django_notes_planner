@@ -1,0 +1,13 @@
+.archive-items {
+    background-color: var(--block_bg_color);
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.archive-items h3 {
+    margin: 0;
+}
+
+ .archive-items p {
+    margin-bottom: 0;
+ }
