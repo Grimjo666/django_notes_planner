@@ -4,6 +4,15 @@
     margin-bottom: 10px;
 }
 
+.title-and-form {
+    display: flex;
+    align-items: center;
+}
+
+.archive-time-info {
+
+}
+
 .archive-items h3 {
     margin: 0;
 }

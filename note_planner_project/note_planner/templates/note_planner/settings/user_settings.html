@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load my_filters %}
+
+{% block title %}
+    <title>Настройки</title>
+{% endblock %}
+
+{% block js_scripts %}
+<script src="{% static 'note_planner/js/user_settings/archive_setting_click_on_task.js' %}"></script>
+<script src="{% static 'note_planner/js/user_settings/change_task_priority_color.js' %}"></script>
+<script src="{% static 'note_planner/js/user_settings/update_form_values.js' %}"></script>
+{% endblock %}
+
+{% block css_style %}
+<link rel="stylesheet" href="{% static 'note_planner/css/user_settings.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/sidebar.html' %}
+    <h2>Настройки</h2>
+    <div class="archive-settings">
+        <h3>Настройки цвета приоритета задач</h3>
+        <div class="archive-settings-content">
+            <div class="tasks-preview">
+                <div class="task-priority high" style="border-left-color: {{ high_priority }};"><h4>Задача с высоким приоритетом</h4></div>
+                <div class="task-priority medium" style="border-left-color: {{ medium_priority }};"><h4>Задача со средним приоритетом</h4></div>
+                <div class="task-priority low" style="border-left-color: {{ low_priority }};"><h4>Задача с низким приоритетом</h4></div>
+            </div>
+            <div class="color-panel" action="">
+                <form method="post">
+                    {% csrf_token %}
+                    <label for="red">Красный</label>
+                    <input type="range" id="red" min="0" max="255" value="0">
+                    <input type="hidden" name="red" value="0">
+                    <label for="green">Зелёный</label>
+                    <input type="range" id="green" min="0" max="255" value="0">
+                    <input type="hidden" name="green" value="0">
+                    <label for="blue">Синий</label>
+                    <input type="range" id="blue" min="0" max="255" value="0">
+                    <input type="hidden" name="blue" value="0">
+                    <label for="alpha">Прозрачность</label>
+                    <input type="range" id="alpha" min="0" max="255" value="0">
+                    <input type="hidden" name="alpha" value="0">
+                    <input type="hidden" name="task_priority" value="high">
+                    <button type="submit" class="button-save-priority-color">Применить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -67,3 +67,9 @@ class SubTask(models.Model):
     def __str__(self):
         return f'Подзадача: {self.title}'
 
+
+class TaskColorSettings(models.Model):
+    high_priority_color = models.CharField(max_length=20, default='#440673')
+    medium_priority_color = models.CharField(max_length=20, default='#06734b')
+    low_priority_color = models.CharField(max_length=20, default='#383838')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)

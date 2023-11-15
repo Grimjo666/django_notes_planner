@@ -12,18 +12,23 @@
 
 {% block content %}
     {% include 'includes/sidebar.html' %}
+    <h2>Выполненные задачи:</h2>
     <div class="archive-block">
         {% for task_name, value in archive_tasks.items %}
             <div class="archive-items">
-                <h3>{{ task_name }}</h3>
-                <p>
-                    Дедлайн: {{ value|get:"due_date" }} {% if value|get:"completed_at" %}<br><br>Дата выполнения: {{ value|get:"completed_at" }} {% endif %}
-                </p>
-                <form method="post" action="{% url 'delete_task_path' value|get:'task_id' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="page" value="archive">
-                    <button title="Удалить" type="submit" class="button-delete-task" >✖</button>
-                </form>
+                <div class="title-and-form">
+                    <h3>{{ task_name }}</h3>
+                    <form method="post" action="{% url 'delete_task_path' value|get:'task_id' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="page" value="archive">
+                        <button title="Удалить" type="submit" class="button-delete-task delete_button" >✖</button>
+                    </form>
+                </div>
+                <div class="archive-time-info">
+                    <p>
+                        Дедлайн: {{ value|get:"due_date" }} {% if value|get:"completed_at" %}<br><br>Дата выполнения: {{ value|get:"completed_at" }} {% endif %}
+                    </p>
+                </div>
             </div>
         {% endfor %}
     </div>

@@ -38,7 +38,7 @@
 
 button {
     background-color: var(--sidebar_background);
-    color: white;
+    color: var(--font-color);
     border: none;
     padding: 8px 16px;
     cursor: pointer;

@@ -17,7 +17,7 @@
 
 {% block content %}
 {% include 'includes/sidebar.html' %}
-
+<h2>Задачи:</h2>
 <div class="tasks-block">
 
     {% for task_name, value in tasks_dict.items%}
@@ -27,11 +27,11 @@
             </div>
 
             {% if value|get:"priority" == 1 %}
-            <div class="tasks-items violet">
+            <div class="tasks-items" style="border-left-color: {{ high_priority }};">
             {% elif value|get:"priority" == 2 %}
-            <div class="tasks-items green">
+            <div class="tasks-items" style="border-left-color: {{ medium_priority }};">
             {% else %}
-            <div class="tasks-items">
+            <div class="tasks-items" style="border-left-color: {{ low_priority }};">
             {% endif %}
 
                 <h3>{{ task_name }}</h3>

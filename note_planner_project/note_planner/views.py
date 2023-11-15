@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 from django.shortcuts import render, redirect, Http404, get_object_or_404
 from .models import *
 from django.contrib.auth import authenticate, login, logout
@@ -10,6 +12,22 @@ from datetime import datetime
 
 from note_planner import forms
 
+
+class TemplateColorsMixin:
+    @staticmethod
+    def get_task_priority_colors_dict(request) -> dict[str, Any] | None:
+        task_colors = TaskColorSettings.objects.all().filter(user=request.user)
+        if task_colors.exists():
+            high_priority = task_colors[0].high_priority_color
+            medium_priority = task_colors[0].medium_priority_color
+            low_priority = task_colors[0].low_priority_color
+            context = {
+                'high_priority': high_priority,
+                'medium_priority': medium_priority,
+                'low_priority': low_priority
+            }
+            return context
+        return None
 
 def index_page(request):
     return render(request, 'note_planner/index.html')
@@ -123,7 +141,7 @@ def add_note_category(request):
 
 
 @method_decorator(login_required, name='dispatch')
-class TasksPageView(View):
+class TasksPageView(View, TemplateColorsMixin):
     template_name = 'note_planner/tasks.html'
 
     def get(self, request):
@@ -157,12 +175,14 @@ class TasksPageView(View):
                                       'priority': task.priority,
                                       'id': task.id,
                                       'subtasks_list': subtasks_list}
-
         context = {
             'tasks_dict': tasks_dict,
             'add_task_form': forms.AddTaskForm(user),
             'add_subtask_form': forms.AddSubTaskForm()
         }
+        # Получаем цвета для приоритета задач и добавляем их словарь context
+        context.update(self.get_task_priority_colors_dict(request))
+
         return render(request, self.template_name, context=context)
 
     def post(self, request):
@@ -276,3 +296,38 @@ def logout_page(request):
     logout(request)
 
     return redirect('index_page_path')
+
+
+@method_decorator(login_required, name='dispatch')
+class UserSettingsView(View, TemplateColorsMixin):
+    template_name = 'note_planner/settings/user_settings.html'
+
+    @staticmethod
+    def rgba_to_hex(r, g, b, a=255):
+        r = max(0, min(255, r))
+        g = max(0, min(255, g))
+        b = max(0, min(255, b))
+        a = max(0, min(255, a))
+
+        return "#{:02x}{:02x}{:02x}{:02x}".format(r, g, b, a)
+
+    def get(self, request):
+        context = self.get_task_priority_colors_dict(request)
+        return render(request, self.template_name, context=context)
+
+    def post(self, request):
+        task_priority = request.POST.get('task_priority')
+        if task_priority:
+            r = int(request.POST.get('red'))
+            g = int(request.POST.get('green'))
+            b = int(request.POST.get('blue'))
+            a = int(request.POST.get('alpha'))
+            hex_color = self.rgb_to_hex(r, g, b, a)
+
+            # Проверяем есть ли запись в БД, если нет,то создаём её
+            if not self.get_task_priority_colors_dict(request):
+                TaskColorSettings.objects.create(user=request.user, **{f'{task_priority}_priority_color': hex_color})
+            else:
+                TaskColorSettings.objects.update(user=request.user, **{f'{task_priority}_priority_color': hex_color})
+
+        return redirect('settings_page_path')
