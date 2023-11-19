@@ -15,15 +15,20 @@
 <link rel="stylesheet" href="{% static 'note_planner/css/tasks.css' %}">
 {% endblock %}
 
+{% block sidebar %}
+    {% include 'includes/sidebar.html' %}
+{% endblock %}
+
+
+
 {% block content %}
-{% include 'includes/sidebar.html' %}
 <h2>Задачи:</h2>
 <div class="tasks-block">
 
     {% for task_name, value in tasks_dict.items%}
         <div class="checkbox-label">
             <div class="check-box-container">
-                <input type="checkbox" id="task-checkbox-{{value|get:'id'}}" name="highlight" value="{{ value.id }}">
+                <input type="checkbox" id="task-checkbox-{{value|get:'id'}}" name="checkbox" value="{{ value.id }}" form="tasks-form">
             </div>
 
             {% if value|get:"priority" == 1 %}
@@ -42,24 +47,25 @@
                     {% endif %}
                 </p>
 
-                <form method="post" action="{% url 'done_task_path' value|get:'id' %}">
+                <form method="post" action="{% url 'done_task_page_path' value|get:'id' %}" >
                     {% csrf_token %}
-                    <button title="Выполнено" type="submit" class="button-done-task">✔</button>
-                </form>
-                <form method="post" action="">
-                    {% csrf_token %}
-                    <button title="Изменить" type="submit" class="button-edit-task">✐</button>
-                </form>
-                <form method="post" action="{% url 'delete_task_path' value|get:'id' %}">
-                    {% csrf_token %}
-                    <button title="Удалить" type="submit" class="button-delete-task">✖</button>
+                    <input type="hidden" name="form_type" value="done_edit_delete_task_form">
+                    <button title="Выполнено" type="submit" class="button-done-task" name="button" value="done">✔</button>
+                    <button title="Изменить" type="submit" class="button-edit-task" name="button" value="edit">✐</button>
+                    <button title="Удалить" type="submit" class="button-delete-task" name="button" value="delete">✖</button>
                 </form>
                 <button type="button" class="button-show-description task-id-{{ value|get:'id' }}">▼</button>
 
             </div>
 
         </div>
-        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden">
+        {% if value|get:"priority" == 1 %}
+        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden" style="border-left-color: {{ high_priority }};">
+        {% elif value|get:"priority" == 2 %}
+        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden" style="border-left-color: {{ medium_priority }};">
+        {% else %}
+        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden" style="border-left-color: {{ low_priority }};">
+        {% endif %}
             {% if value|get:"description" %}
             <h3 class="task-description-title">Описание задачи</h3>
             <div class="task-description-block">{{ value|get:"description" }}</div>
@@ -85,7 +91,7 @@
                     <h4>{{ subtask.title }}</h4>
                     {% endif %}
                     <div class="subtask-buttons">
-                        <form method="post" action="{% url 'done_subtask_path' subtask|get:'id' %}">
+                        <form method="post" action="">
                             {% csrf_token %}
                             <button title="Выполнено" type="submit" class="button-done-subtask">✔</button>
                         </form>
@@ -115,18 +121,12 @@
 </div>
 
 <div class="bottom-panel">
-
     <button title="Добавить" class="button-add-task">+</button>
-
-
-    <form method="post" action="" >
+    <form method="post" action="{% url 'tasks_page_path' %}" id="tasks-form">
         {% csrf_token %}
-        <button title="В архив" class="button-archive-task">В архив</button>
-    </form>
-
-    <form method="post" action="" id="task-checkbox">
-        {% csrf_token %}
-        <button title="Удалить" class="button-delete-selected-tasks">Удалить</button>
+        <button title="В архив" class="button-archive-task" name="button" value="done">Выполнено</button>
+        <button title="Удалить" class="button-delete-selected-tasks" name="button" value="delete">Удалить</button>
+        <input type="hidden" name="form_type" value="checkbox_form">
     </form>
 </div>
 

@@ -1,0 +1,25 @@
+{% load static %}
+
+{% block css_style %}
+<link rel="stylesheet" href="{% static 'note_planner/css/user_menu.css' %}">
+{% endblock %}
+
+{% block js_scripts %}
+<script src="{% static 'note_planner/js/user_menu.js' %}"></script>
+{% endblock %}
+
+{% if user.is_authenticated  %}
+    <div class="user-block">
+        <div class="hidden-user-block">
+            <ul>
+                <li><a href="">Профиль</a></li>
+                <li><a href="{% url 'settings_page_path' %}">Настройки</a></li>
+                <li><a href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+        </div>
+        <div class="inner-user-block">
+            <img src="{% static 'note_planner/image/user_logo.png' %}" alt="">
+            <p>{{ user|title }}</p>
+        </div>
+    </div>
+{% endif %}

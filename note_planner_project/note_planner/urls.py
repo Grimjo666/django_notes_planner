@@ -15,10 +15,8 @@ urlpatterns = [
     path('add_note_category', views.add_note_category, name='add_note_category_page_path'),
     path('delete_note_category', views.delete_note_category, name='delete_note_category_path'),
     path('tasks', views.TasksPageView.as_view(), name='tasks_page_path'),
-    path('delete_task/<int:task_id>', views.delete_task, name='delete_task_path'),
+    path('tasks/<int:task_id>', views.TasksPageView.as_view(), name='done_task_page_path'),
     path('delete_subtask/<int:subtask_id>', views.delete_subtask, name='delete_subtask_path'),
-    path('done_task/<int:task_id>', views.done_task, name='done_task_path'),
-    path('switch_task/<int:subtask_id>', views.switch_subtask, name='done_subtask_path'),
     path('archive', views.archive_page, name='archive_page_path'),
-    path('settings', views.UserSettingsView.as_view(), name='settings_page_path')
+    path('settings', views.UserSettingsView.as_view(), name='settings_page_path'),
 ]

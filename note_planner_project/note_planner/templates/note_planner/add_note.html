@@ -4,8 +4,11 @@
     <title>Добавить заметку</title>
 {% endblock %}
 
-{% block content %}
+{% block sidebar %}
     {% include 'includes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
     <div class="add-note-form">
     <h2>Добавить новую заметку</h2>
     <form method="post" action="{% url 'add_note_page_path' %}">

@@ -10,8 +10,11 @@
 <link rel="stylesheet" href="{% static 'note_planner/css/archive.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block sidebar %}
     {% include 'includes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
     <h2>Выполненные задачи:</h2>
     <div class="archive-block">
         {% for task_name, value in archive_tasks.items %}

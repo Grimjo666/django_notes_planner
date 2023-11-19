@@ -14,8 +14,12 @@
 </head>
 <body>
 <div class="overlay hidden"></div>
-<div class="content">
+<div class="wrapper">
+    {% block sidebar %}
+    {% endblock %}
+    <div class="content">
     {% block content %}{% endblock %}
+    </div>
 </div>
 
 </body>

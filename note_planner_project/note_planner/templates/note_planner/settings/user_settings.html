@@ -16,8 +16,11 @@
 <link rel="stylesheet" href="{% static 'note_planner/css/user_settings.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block sidebar %}
     {% include 'includes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
     <h2>Настройки</h2>
     <div class="archive-settings">
         <h3>Настройки цвета приоритета задач</h3>

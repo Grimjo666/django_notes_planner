@@ -9,8 +9,11 @@
 <title>Главная</title>
 {% endblock %}
 
+{% block sidebar %}
+    {% include 'includes/sidebar.html' %}
+{% endblock %}
+
 {% block content %}
-{% include 'includes/sidebar.html' %}
 <div class="statistic-block">
     <div class="inner-statistic-block">
         <h2>Статистика</h2>

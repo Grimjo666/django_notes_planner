@@ -1,11 +1,11 @@
 :root {
-    --background_color: #0F1E1F;
-    --block_bg_color: #212424;
-    --sidebar_background: #212424;
-    --font_color: #8C9697;
-    --font_color_activ: #70e0c6;
+    --background_color: #111230;
+    --block_bg_color: #1d1e38;
+    --sidebar_background: #1d1e38;
+    --font_color: #dadae3;
+    --font_color_activ: #5d78fc;
     --delete_button_bg: #db021c;
-    --block_border_color: #2d3030;
+    --block_border_color: #2a2c52;
 }
 
 /* Установите цвет полосы прокрутки (скролла) */
@@ -42,7 +42,7 @@ button {
     border: none;
     padding: 8px 16px;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 12px;
 }
 
 button:hover {
@@ -88,7 +88,11 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--background_color);
-    color: var(--font_color);
+    color: #dadae3;
+}
+
+.wrapper {
+  overflow: hidden; /* Это нужно для обработки потока после использования float */
 }
 
 .content {

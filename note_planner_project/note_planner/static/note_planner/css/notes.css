@@ -7,13 +7,14 @@
     margin: 10px;
     padding: 15px;
     background-color: var(--block_bg_color);
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
     float: left;
     box-sizing: border-box;
     overflow-y: auto; /* добавляет вертикальный скролл, если контент выходит за пределы блока */
     height: 200px; /* задает максимальную высоту блока, после которой будет появляться скролл */
     position: relative;
+    border: 2px solid var(--block_border_color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .button-delete-note {
@@ -69,7 +70,6 @@
     color: var(--font_color);
     border: none;
     padding: 20px 40px;
-    border-radius: 10px;
     cursor: pointer;
     font-size: 50px;
 }
@@ -105,7 +105,8 @@
     border: none;
     padding: 8px 16px;
     cursor: pointer;
-    border-radius: 5px;
+    border: 2px solid var(--block_border_color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .category-button:hover, .add-category-button:hover{

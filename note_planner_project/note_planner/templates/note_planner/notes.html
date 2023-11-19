@@ -15,10 +15,11 @@
 {% endblock %}
 
 
-
+{% block sidebar %}
+    {% include 'includes/sidebar.html' %}
+{% endblock %}
 {% block content %}
 
-    {% include 'includes/sidebar.html' %}
     <div class="notes-block">
         <h2>Заметки</h2>
         <div class="category-panel">

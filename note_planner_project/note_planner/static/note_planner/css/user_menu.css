@@ -1,0 +1,32 @@
+.user-block {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    padding: 7px;
+    background-color: var(--block_bg_color);
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hidden-user-block {
+    display: none;
+    text-align: center;
+}
+
+.inner-user-block {
+    display: flex; /* Используем flexbox для расположения элементов в ряд */
+    align-items: center; /* Выравниваем элементы по центру по вертикали */
+    padding: 0 10px 0 10px;
+}
+
+.inner-user-block:hover {
+    background-color: var(--background_color);
+    cursor: pointer;
+    border-radius: 13px;
+}
+
+.inner-user-block img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px; /* Добавляем немного отступа между изображением и текстом */
+}

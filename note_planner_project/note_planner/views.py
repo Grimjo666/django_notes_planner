@@ -7,10 +7,26 @@ from django.contrib.auth.forms import UserCreationForm
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 from datetime import datetime
 
 from note_planner import forms
+
+
+class CacheDict:
+    def __init__(self):
+        self.cache_dict = dict()
+
+    def get_cache(self, key):
+        if self.cache_dict.get(key, None):
+            return self.cache_dict[key]
+
+    def update_cache_value(self, key, value):
+        if self.get_cache(key):
+            self.cache_dict[key] = value + self.cache_dict[key]
+        else:
+            self.cache_dict[key] = value
 
 
 class TemplateColorsMixin:
@@ -28,6 +44,7 @@ class TemplateColorsMixin:
             }
             return context
         return None
+
 
 def index_page(request):
     return render(request, 'note_planner/index.html')
@@ -144,15 +161,21 @@ def add_note_category(request):
 class TasksPageView(View, TemplateColorsMixin):
     template_name = 'note_planner/tasks.html'
 
-    def get(self, request):
-        user = request.user
-        # Если пользователь не авторизован, делаем редирект на страницу авторизации
-        if not user.is_authenticated:
-            return redirect('login_page_path')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, *kwargs)
+        self.user = None
+        self.cache = None
 
-        tasks_data = Task.objects.all().filter(user=user, completed=0).order_by('priority')
+    def dispatch(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+
+        tasks_data = Task.objects.all().filter(user=self.user, completed=0).order_by('priority')
         subtasks_data = SubTask.objects.filter(task__in=tasks_data)
         tasks_dict = dict()
+        cache = CacheDict()
 
         # Проходимся по задачам пользователя и создаём словарь с данными
         for task in tasks_data:
@@ -169,6 +192,16 @@ class TasksPageView(View, TemplateColorsMixin):
                                           'id': sub.id
                                           })
 
+            # Проверяем на дубликаты названия задачи
+            if task.title in tasks_dict:
+                if not cache.get_cache(task.title):
+                    cache.update_cache_value(task.title, 2)
+                    task.title = task.title + ' (2)'
+                else:
+                    cache.update_cache_value(task.title, 1)
+                    task.title = task.title + f' ({str(cache.get_cache(task.title))})'
+
+            print(task.title, cache.cache_dict)
             tasks_dict[task.title] = {'due_date': task.due_date,
                                       'description': task.description,
                                       'due_time': task.due_time,
@@ -176,8 +209,9 @@ class TasksPageView(View, TemplateColorsMixin):
                                       'id': task.id,
                                       'subtasks_list': subtasks_list}
         context = {
+            'len_tasks': len(tasks_dict),
             'tasks_dict': tasks_dict,
-            'add_task_form': forms.AddTaskForm(user),
+            'add_task_form': forms.AddTaskForm(self.user),
             'add_subtask_form': forms.AddSubTaskForm()
         }
         # Получаем цвета для приоритета задач и добавляем их словарь context
@@ -185,64 +219,92 @@ class TasksPageView(View, TemplateColorsMixin):
 
         return render(request, self.template_name, context=context)
 
-    def post(self, request):
+    def post(self, request, task_id=None):
+        # Достаём название пришедшей формы из скрытого поля
         form_type = request.POST.get('form_type')
+        # Достаём название нажатой кнопки из пришедшей формы
+        form_button = request.POST.get('button')
 
         if form_type == 'add_task':
-            add_task_form = forms.AddTaskForm(request.user, request.POST)
-            if add_task_form.is_valid():
-                add_task_form.save(commit=False)
-                add_task_form.instance.user = request.user
-                add_task_form.save()
+            self.process_add_task_form(request)
 
         if form_type == 'add_subtask':
-            add_subtask_form = forms.AddSubTaskForm(request.POST)
+            self.process_add_subtask_form(request)
 
-            # Проверяем форму на валидность
-            if add_subtask_form.is_valid() and add_subtask_form.cleaned_data['title']:
-                # Получаем ID задачи, к которой относится подзадача
-                task_id = request.POST.get('task_id')
-                task_model = Task.objects.all().get(id=task_id)
-                # Сохраняем подзадачу
-                SubTask.objects.create(
-                    title=add_subtask_form.cleaned_data['title'],
-                    description=add_subtask_form.cleaned_data['description'],
-                    task=task_model
-                )
+        if form_type == 'done_edit_delete_task_form' and task_id:
+
+            if form_button == 'delete':
+                self.process_delete_task(request, task_id)
+
+            elif form_button == 'done':
+                self.process_done_task(request, int(task_id))
+
+            elif form_button == 'edit':
+                print('edit')
+
+        if form_type == 'checkbox_form' and request.POST.getlist('checkbox'):
+
+            if form_button == 'delete':
+                for i in request.POST.getlist('checkbox'):
+                    self.process_delete_task(request, int(i))
+
+            elif form_button == 'done':
+                for i in request.POST.getlist('checkbox'):
+                    self.process_done_task(request, int(i))
 
         return redirect('tasks_page_path')
 
+    # Обработка формы добавления задачи
+    @staticmethod
+    def process_add_task_form(request):
+        add_task_form = forms.AddTaskForm(request.user, request.POST)
+        if add_task_form.is_valid():
+            add_task_form.save(commit=False)
+            add_task_form.instance.user = request.user
+            add_task_form.save()
 
-def delete_task(request, task_id):
-    if request.method == 'POST':
+    # Обработка формы добавления подзадачи
+    @staticmethod
+    def process_add_subtask_form(request):
+        add_subtask_form = forms.AddSubTaskForm(request.POST)
+
+        # Проверяем форму на валидность
+        if add_subtask_form.is_valid() and add_subtask_form.cleaned_data['title']:
+            # Получаем ID задачи, к которой относится подзадача
+            task_id = request.POST.get('task_id')
+            task_model = Task.objects.all().get(id=task_id)
+            # Сохраняем подзадачу
+            SubTask.objects.create(
+                title=add_subtask_form.cleaned_data['title'],
+                description=add_subtask_form.cleaned_data['description'],
+                task=task_model
+            )
+
+    @staticmethod
+    def process_done_task(request, task_id):
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        task.completed = True
+        task.completed_at = timezone.now()
+        task.save()
+
+    @staticmethod
+    def process_switch_subtask(request, subtask_id):
+        if request.method == 'POST':
+            subtask = get_object_or_404(SubTask, id=subtask_id)
+            # Инвертируем значение поля completed
+            subtask.completed = not subtask.completed
+            # Сохраняем изменения
+            subtask.save()
+        return redirect('tasks_page_path')
+
+    @staticmethod
+    def process_delete_task(request, task_id):
         Task.objects.filter(user=request.user, id=task_id).delete()
-
-    if request.POST.get('page') == 'archive':
-        return redirect('archive_page_path')
-
-    return redirect('tasks_page_path')
 
 
 def delete_subtask(request, subtask_id):
     if request.method == 'POST':
         SubTask.objects.filter(id=subtask_id).delete()
-    return redirect('tasks_page_path')
-
-
-def done_task(request, task_id):
-    if request.method == 'POST':
-        Task.objects.filter(user=request.user, id=task_id).update(completed=True, completed_at=datetime.now())
-
-        return redirect('tasks_page_path')
-
-
-def switch_subtask(request, subtask_id):
-    if request.method == 'POST':
-        subtask = get_object_or_404(SubTask, id=subtask_id)
-        # Инвертируем значение поля completed
-        subtask.completed = not subtask.completed
-        # Сохраняем изменения
-        subtask.save()
     return redirect('tasks_page_path')
 
 

@@ -1,6 +1,8 @@
 .archive-settings {
     background-color: var(--block_bg_color);
     padding: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
 }
 
 .archive-settings-content {
@@ -14,7 +16,7 @@
     padding: 20px;
     width: 250px;
     font-size: 80%;
-    border-radius: 5px;
+    border-radius: 15px;
     margin-right: 15px;
 }
 
@@ -22,8 +24,9 @@
     background-color: var(--block_bg_color);
     padding: 12px;
     margin-bottom: 15px;
-    border-radius: 5px;
+    border-radius: 10px;
     border-left: 7px solid #383838;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .task-priority:hover {

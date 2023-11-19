@@ -1,7 +1,10 @@
 .statistic-block {
     background-color: var(--block_bg_color);
     padding: 10px;
-    text-align: center; /* Центрируем содержимое */
+    text-align: center;
+    border-radius: 15px;
+    border: 2px solid var(--block_border_color);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .statistic-block h2 {
