@@ -1,29 +1,45 @@
 document.addEventListener("DOMContentLoaded", function() {
-    var overlay = document.querySelector('.overlay'); // Получаем элемент с классом "overlay"
-    var addTaskBlock = document.querySelector('.add-task-block'); // Получаем элемент с классом "add-task-block"
-    var addButton = document.querySelector('.button-add-task'); // Получаем кнопку с классом "button-add-task"
-    var closeButton = document.querySelector('.button-close-task-form'); // Получаем кнопку с классом "button-close-task-form"
+    var overlay = document.querySelector('.overlay');
+    var addTaskBlock = document.querySelector('.add-task-block');
+    var addButton = document.querySelector('.button-add-task');
+    var closeButton = document.querySelector('.button-close-task-form');
+    var saveButton = document.querySelector('.save-task-button'); // Добавлено: кнопка сохранения
 
-    // Функция для закрытия блока задач
     function closeTaskBlock() {
-        overlay.classList.add('hidden'); // Добавляем класс "hidden" к элементу с классом "overlay"
-        addTaskBlock.classList.add('hidden'); // Добавляем класс "hidden" к элементу с классом "add-task-block"
+        overlay.classList.add('hidden');
+        addTaskBlock.classList.add('hidden');
     }
 
-    // Обработчик клика по кнопке "Добавить задачу"
-    addButton.addEventListener('click', function() {
-        overlay.classList.remove('hidden'); // Удаляем класс "hidden" у элемента с классом "overlay"
-        addTaskBlock.classList.remove('hidden'); // Удаляем класс "hidden" у элемента с классом "add-task-block"
-    });
+    function openTaskBlock() {
+        overlay.classList.remove('hidden');
+        addTaskBlock.classList.remove('hidden');
+    }
 
-    // Обработчик клика по кнопке "Закрыть форму задачи"
+    addButton.addEventListener('click', openTaskBlock);
+
     closeButton.addEventListener('click', closeTaskBlock);
 
-    // Обработчик клика по элементу с классом "overlay"
     overlay.addEventListener('click', function(event) {
-        // Проверяем, что элемент, по которому кликнули, имеет класс "overlay"
         if (event.target.classList.contains('overlay')) {
-            closeTaskBlock(); // Вызываем функцию для закрытия блока задач
+            closeTaskBlock();
         }
     });
+
+    // Добавлено: обработчик клика по кнопке "Сохранить"
+    saveButton.addEventListener('click', function() {
+        // Проверка валидности формы
+        var formIsValid = validateTaskForm(); // Замените на функцию, которая проверяет валидность формы
+
+        // Если форма валидна, закрываем блок задач
+        if (formIsValid) {
+            closeTaskBlock();
+        }
+    });
+
+    // Добавлено: функция для проверки валидности формы (замените на свою логику)
+    function validateTaskForm() {
+        // Реализуйте вашу логику проверки валидности формы
+        // Верните true, если форма валидна, и false в противном случае
+        return false;
+    }
 });

@@ -73,3 +73,8 @@ class TaskColorSettings(models.Model):
     medium_priority_color = models.CharField(max_length=20, default='#06734b')
     low_priority_color = models.CharField(max_length=20, default='#383838')
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+
+class UserProfileInfo(models.Model):
+    photo = models.FileField(upload_to='user_profile_photos')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)

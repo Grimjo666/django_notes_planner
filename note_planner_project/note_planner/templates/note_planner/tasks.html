@@ -47,7 +47,7 @@
                     {% endif %}
                 </p>
 
-                <form method="post" action="{% url 'done_task_page_path' value|get:'id' %}" >
+                <form method="post" action="{% url 'task_id_page_path' value|get:'id' %}" >
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="done_edit_delete_task_form">
                     <button title="Выполнено" type="submit" class="button-done-task" name="button" value="done">✔</button>
@@ -71,7 +71,9 @@
             <div class="task-description-block">{{ value|get:"description" }}</div>
             {% endif %}
             <h3 class="task-subtask-title">Подзадачи:</h3>
-            <div class="subtask-item"><button type="button" class="add-subtask-bottom task-id-{{ value|get:'id' }}">+</button></div>
+            <div class="subtask-item">
+                <button type="button" class="add-subtask-bottom task-id-{{ value|get:'id' }}">+</button>
+            </div>
             <div class="add-subtask-block task-id-{{ value|get:'id' }} hidden">
                 <form method="POST" action="{% url 'tasks_page_path' %}">
                     {% csrf_token %}
@@ -91,14 +93,12 @@
                     <h4>{{ subtask.title }}</h4>
                     {% endif %}
                     <div class="subtask-buttons">
-                        <form method="post" action="">
+                        <form method="post" action="{% url 'task_id_page_path' subtask|get:'id' %}">
                             {% csrf_token %}
-                            <button title="Выполнено" type="submit" class="button-done-subtask">✔</button>
-                        </form>
-                        <button type="button" class="button-show-subtask-description subtask-id-{{ subtask|get:'id' }}">▼</button>
-                        <form method="post" action="{% url 'delete_subtask_path' subtask|get:'id' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="button-delete-subtask delete_button subtask-id-{{ subtask|get:'id' }}">✖</button>
+                            <input type="hidden" name="form_type" value="edit_subtask_form">
+                            <button title="Выполнено" type="submit" class="button-done-subtask" name="button" value="done">✔</button>
+                            <button type="button" class="button-show-subtask-description subtask-id-{{ subtask|get:'id' }}" >▼</button>
+                            <button type="submit" class="button-delete-subtask delete_button subtask-id-{{ subtask|get:'id' }}" name="button" value="delete">✖</button>
                         </form>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
         {% csrf_token %}
         {{ add_task_form.as_p }}
         <input type="hidden" name="form_type" value="add_task">
-        <button type="submit" class="save-button">Сохранить</button>
+        <button type="submit" class="save-task-button">Сохранить</button>
     </form>
 </div>
 

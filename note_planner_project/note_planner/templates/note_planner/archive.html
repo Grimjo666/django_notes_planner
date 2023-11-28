@@ -21,9 +21,9 @@
             <div class="archive-items">
                 <div class="title-and-form">
                     <h3>{{ task_name }}</h3>
-                    <form method="post" action="{% url 'delete_task_path' value|get:'task_id' %}">
+                    <form method="post" action="{% url 'task_id_archive_page_path' value|get:'task_id' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="page" value="archive">
+                        <input type="hidden" name="form_type" value="archive_delete_task_form">
                         <button title="Удалить" type="submit" class="button-delete-task delete_button" >✖</button>
                     </form>
                 </div>

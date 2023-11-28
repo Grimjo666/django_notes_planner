@@ -201,7 +201,6 @@ class TasksPageView(View, TemplateColorsMixin):
                     cache.update_cache_value(task.title, 1)
                     task.title = task.title + f' ({str(cache.get_cache(task.title))})'
 
-            print(task.title, cache.cache_dict)
             tasks_dict[task.title] = {'due_date': task.due_date,
                                       'description': task.description,
                                       'due_time': task.due_time,
@@ -252,16 +251,23 @@ class TasksPageView(View, TemplateColorsMixin):
                 for i in request.POST.getlist('checkbox'):
                     self.process_done_task(request, int(i))
 
+        if form_type == 'edit_subtask_form':
+            if form_button == 'done':
+                self.process_switch_subtask(request, task_id)
+            elif form_button == 'delete':
+                self.delete_subtask(request, task_id)
+
         return redirect('tasks_page_path')
 
     # Обработка формы добавления задачи
-    @staticmethod
-    def process_add_task_form(request):
+    def process_add_task_form(self, request):
         add_task_form = forms.AddTaskForm(request.user, request.POST)
         if add_task_form.is_valid():
             add_task_form.save(commit=False)
             add_task_form.instance.user = request.user
             add_task_form.save()
+        else:
+            return render(request, self.template_name, context={'add_task_form': add_task_form})
 
     # Обработка формы добавления подзадачи
     @staticmethod
@@ -295,28 +301,36 @@ class TasksPageView(View, TemplateColorsMixin):
             subtask.completed = not subtask.completed
             # Сохраняем изменения
             subtask.save()
-        return redirect('tasks_page_path')
 
     @staticmethod
     def process_delete_task(request, task_id):
         Task.objects.filter(user=request.user, id=task_id).delete()
 
+    @staticmethod
+    def delete_subtask(request, subtask_id):
+        if request.method == 'POST':
+            SubTask.objects.filter(id=subtask_id).delete()
 
-def delete_subtask(request, subtask_id):
-    if request.method == 'POST':
-        SubTask.objects.filter(id=subtask_id).delete()
-    return redirect('tasks_page_path')
 
+class ArchivePageView(View):
+    template_name = 'note_planner/archive.html'
 
-def archive_page(request):
-    data = Task.objects.all().filter(completed=1)
-    tasks = {task.title: {'due_date': task.due_date,
-                          'completed_at': task.completed_at,
-                          'task_id': task.id} for task in data}
-    context = {
-        'archive_tasks': tasks
-    }
-    return render(request, 'note_planner/archive.html', context=context)
+    def get(self, request):
+        data = Task.objects.all().filter(completed=1)
+        tasks = {task.title: {'due_date': task.due_date,
+                              'completed_at': task.completed_at,
+                              'task_id': task.id} for task in data}
+        context = {
+            'archive_tasks': tasks
+        }
+        return render(request, self.template_name, context=context)
+
+    def post(self, request, task_id=None):
+        form_type = request.POST.get('form_type')
+        if form_type == 'archive_delete_task_form' and task_id:
+            TasksPageView.process_delete_task(request, task_id)
+
+        return redirect('archive_page_path')
 
 
 def login_page(request):
@@ -383,8 +397,9 @@ class UserSettingsView(View, TemplateColorsMixin):
             r = int(request.POST.get('red'))
             g = int(request.POST.get('green'))
             b = int(request.POST.get('blue'))
-            a = int(request.POST.get('alpha'))
-            hex_color = self.rgb_to_hex(r, g, b, a)
+            a = 255 - int(request.POST.get('alpha'))
+            print(a)
+            hex_color = self.rgba_to_hex(r, g, b, a)
 
             # Проверяем есть ли запись в БД, если нет,то создаём её
             if not self.get_task_priority_colors_dict(request):
@@ -393,3 +408,20 @@ class UserSettingsView(View, TemplateColorsMixin):
                 TaskColorSettings.objects.update(user=request.user, **{f'{task_priority}_priority_color': hex_color})
 
         return redirect('settings_page_path')
+
+
+class UserProfileView(View):
+    template_name = 'note_planner/settings/user_profile.html'
+
+    def get(self, request):
+        form = forms.UploadUserPhotoForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = forms.UploadUserPhotoForm(request.POST, request.FILES)
+        if form.is_valid():
+            photo = form.cleaned_data['photo']
+            new_photo = UserProfileInfo(photo=photo, user=request.user)
+            new_photo.save()
+            return redirect('user_profile_path')
+        return render(request, self.template_name, {'form': form})

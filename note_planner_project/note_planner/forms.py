@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.validators import FileExtensionValidator
+
 from .models import *
 from django.contrib.auth.models import User
 from datetime import datetime
@@ -119,3 +121,10 @@ class AddSubTaskForm(forms.ModelForm):
             'title': 'Название подзадачи',
             'description': 'Описание (не обязательно)',
         }
+
+
+class UploadUserPhotoForm(forms.Form):
+    photo = forms.FileField(
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])], label=''
+    )
+
