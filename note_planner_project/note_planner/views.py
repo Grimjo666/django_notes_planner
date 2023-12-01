@@ -5,11 +5,11 @@ from .models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.views import View
+from django.views.generic import CreateView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
-from datetime import datetime
 
 from note_planner import forms
 
@@ -214,7 +214,9 @@ class TasksPageView(View, TemplateColorsMixin):
             'add_subtask_form': forms.AddSubTaskForm()
         }
         # Получаем цвета для приоритета задач и добавляем их словарь context
-        context.update(self.get_task_priority_colors_dict(request))
+        task_priority_colors = self.get_task_priority_colors_dict(request)
+        if task_priority_colors is not None:
+            context.update(task_priority_colors)
 
         return render(request, self.template_name, context=context)
 
@@ -362,6 +364,10 @@ def register_page(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+
+            # Создаём запись о пользователе в таблице настроек цвета
+            TaskColorSettings(user=user).save()
+
             return redirect('notes_page_path')
     else:
         form = UserCreationForm()
@@ -410,18 +416,26 @@ class UserSettingsView(View, TemplateColorsMixin):
         return redirect('settings_page_path')
 
 
-class UserProfileView(View):
+class UserProfileView(CreateView):
+    model = UserProfileInfo
+    form_class = forms.UploadUserPhotoForm
     template_name = 'note_planner/settings/user_profile.html'
+    success_url = 'user_profile_path'
 
-    def get(self, request):
-        form = forms.UploadUserPhotoForm()
-        return render(request, self.template_name, {'form': form})
+    def form_valid(self, form):
+        # Устанавливаем пользователя перед сохранением формы
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
-    def post(self, request):
-        form = forms.UploadUserPhotoForm(request.POST, request.FILES)
-        if form.is_valid():
-            photo = form.cleaned_data['photo']
-            new_photo = UserProfileInfo(photo=photo, user=request.user)
-            new_photo.save()
-            return redirect('user_profile_path')
-        return render(request, self.template_name, {'form': form})
+    # def get(self, request):
+    #     form = forms.UploadUserPhotoForm()
+    #     return render(request, self.template_name, {'form': form})
+    #
+    # def post(self, request):
+    #     form = forms.UploadUserPhotoForm(request.POST, request.FILES)
+    #     if form.is_valid():
+    #         photo = form.cleaned_data['photo']
+    #         new_photo = UserProfileInfo(photo=photo, user=request.user)
+    #         new_photo.save()
+    #         return redirect('user_profile_path')
+    #     return render(request, self.template_name, {'form': form})

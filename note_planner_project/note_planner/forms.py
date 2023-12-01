@@ -123,7 +123,11 @@ class AddSubTaskForm(forms.ModelForm):
         }
 
 
-class UploadUserPhotoForm(forms.Form):
+class UploadUserPhotoForm(forms.ModelForm):
+    class Meta:
+        model = UserProfileInfo
+        fields = ['photo']
+
     photo = forms.FileField(
         validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])], label=''
     )
