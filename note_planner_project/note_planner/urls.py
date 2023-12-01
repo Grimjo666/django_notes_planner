@@ -1,6 +1,8 @@
 from django.urls import path
 from note_planner import views
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -20,4 +22,4 @@ urlpatterns = [
     path('archive/<int:task_id>', views.ArchivePageView.as_view(), name='task_id_archive_page_path'),
     path('settings', views.UserSettingsView.as_view(), name='settings_page_path'),
     path('profile', views.UserProfileView.as_view(), name='user_profile_path')
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

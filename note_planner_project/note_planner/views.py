@@ -68,7 +68,7 @@ def notes_page(request):
     category_response = request.GET.get('category')
 
     form = forms.AddCategory(request.GET)
-    notes_data = Note.objects.all().filter(user=user)
+    notes_data = Note.objects.filter(user=user)
     notes = dict()
 
     for note in notes_data:
@@ -172,7 +172,7 @@ class TasksPageView(View, TemplateColorsMixin):
 
     def get(self, request):
 
-        tasks_data = Task.objects.all().filter(user=self.user, completed=0).order_by('priority')
+        tasks_data = Task.objects.filter(user=self.user, completed=0).order_by('priority')
         subtasks_data = SubTask.objects.filter(task__in=tasks_data)
         tasks_dict = dict()
         cache = CacheDict()
@@ -420,7 +420,7 @@ class UserProfileView(CreateView):
     model = UserProfileInfo
     form_class = forms.UploadUserPhotoForm
     template_name = 'note_planner/settings/user_profile.html'
-    success_url = 'user_profile_path'
+    success_url = 'profile'
 
     def form_valid(self, form):
         # Устанавливаем пользователя перед сохранением формы

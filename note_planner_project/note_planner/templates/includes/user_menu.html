@@ -18,7 +18,11 @@
             </ul>
         </div>
         <div class="inner-user-block">
-            <img src="{% static 'note_planner/image/user_logo.png' %}" alt="">
+            {% if user_profile_photo %}
+                <img src="{{ user_profile_photo.url }}" alt="">
+            {% else %}
+                <img src="{% static 'note_planner/image/user_logo.png' %}" alt="">
+            {% endif %}
             <p>{{ user|title }}</p>
         </div>
     </div>

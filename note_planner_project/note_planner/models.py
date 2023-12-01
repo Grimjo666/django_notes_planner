@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
 from transliterate import translit
 
 
@@ -77,4 +79,5 @@ class TaskColorSettings(models.Model):
 
 class UserProfileInfo(models.Model):
     photo = models.FileField(upload_to='user_profile_photos')
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    load_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)

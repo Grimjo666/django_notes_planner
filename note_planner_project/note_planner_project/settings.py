@@ -76,6 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'note_planner.context_processors.get_user_profile_photo'
             ],
         },
     },
@@ -138,3 +139,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login'
 
 MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/user_content/'
