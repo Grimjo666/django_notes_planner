@@ -11,7 +11,8 @@
 {% endblock %}
 
 {% block js_scripts %}
-<script src="{% static 'note_planner/js/user_profile.js' %}"></script>
+<script src="{% static 'note_planner/js/user_settings/user_profile.js' %}"></script>
+<script src="{% static 'note_planner/js/user_settings/choice_old_or_delete_photo.js' %}"></script>
 {% endblock %}
 
 
@@ -20,12 +21,13 @@
 {% endblock %}
 
 {% block content %}
+    <div class="choice-block hidden"></div>
     <h3>Ваш профиль</h3>
     <div class="change-user-photo-block">
         <div class="user-photo">
             <div class="user-photo-wrapper">
-                {% if user_photo %}
-                <img src="">
+                {% if user_profile_photo %}
+                <img src="{{ user_profile_photo.url }}">
                 {% else %}
                 <img src="{% static 'note_planner/image/user_logo.png' %}" alt="">
                 {% endif %}
@@ -37,8 +39,13 @@
             <form method="post" action="{% url 'user_profile_path' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form }}
-                <button type="submit" class="button-update" name="button" value="save">Сохранить</button>
-                <button title="Сменить фото" type="submit" class="button-save" name="button" value="delete">Удалить фото</button>
+                <button type="submit" class="button-save" name="button" value="save">Сохранить</button>
+            </form>
+            <form method="post" action="{% url 'user_profile_path' %}">
+                {% csrf_token %}
+
+                <button type="button" class="button-update-to-old" name="button" value="update-to-old">Поменять на старое</button>
+                <button title="Сменить фото" type="button" class="button-delete" name="button" value="delete">Удалить фото</button>
             </form>
         </div>
     </div>

@@ -416,26 +416,20 @@ class UserSettingsView(View, TemplateColorsMixin):
         return redirect('settings_page_path')
 
 
-class UserProfileView(CreateView):
-    model = UserProfileInfo
-    form_class = forms.UploadUserPhotoForm
+class UserProfileView(View):
     template_name = 'note_planner/settings/user_profile.html'
-    success_url = 'profile'
 
-    def form_valid(self, form):
-        # Устанавливаем пользователя перед сохранением формы
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+    def get(self, request):
+        form = forms.UploadUserPhotoForm()
+        return render(request, self.template_name, {'form': form})
 
-    # def get(self, request):
-    #     form = forms.UploadUserPhotoForm()
-    #     return render(request, self.template_name, {'form': form})
-    #
-    # def post(self, request):
-    #     form = forms.UploadUserPhotoForm(request.POST, request.FILES)
-    #     if form.is_valid():
-    #         photo = form.cleaned_data['photo']
-    #         new_photo = UserProfileInfo(photo=photo, user=request.user)
-    #         new_photo.save()
-    #         return redirect('user_profile_path')
-    #     return render(request, self.template_name, {'form': form})
+    def post(self, request):
+        form = forms.UploadUserPhotoForm(request.POST, request.FILES)
+        form_button = request.POST.get('button')
+        print(form_button)
+        if form_button == 'save' and form.is_valid():
+            photo = form.cleaned_data['photo']
+            new_photo = UserProfileInfo(photo=photo, user=request.user)
+            new_photo.save()
+            return redirect('user_profile_path')
+        return render(request, self.template_name, {'form': form})
