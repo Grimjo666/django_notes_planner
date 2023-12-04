@@ -55,14 +55,3 @@
 .hidden {
     display: none;
 }
-
-.choice-block {
-    width: 75%;
-    height: 75%;
-    background-color: var(--block_bg_color); /* Фон блока */
-    padding: 20px; /* Отступы внутри блока */
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Тень */
-    border-radius: 15px;
-    position: fixed;
-    z-index: 1000;
-}

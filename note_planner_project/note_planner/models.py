@@ -77,7 +77,8 @@ class TaskColorSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
-class UserProfileInfo(models.Model):
+class UserProfilePhoto(models.Model):
     photo = models.FileField(upload_to='user_profile_photos')
+    main_photo = models.BooleanField(default=False)
     load_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

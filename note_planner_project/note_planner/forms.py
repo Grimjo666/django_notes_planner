@@ -125,7 +125,7 @@ class AddSubTaskForm(forms.ModelForm):
 
 class UploadUserPhotoForm(forms.ModelForm):
     class Meta:
-        model = UserProfileInfo
+        model = UserProfilePhoto
         fields = ['photo']
 
     photo = forms.FileField(

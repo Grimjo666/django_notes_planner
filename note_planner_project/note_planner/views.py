@@ -417,7 +417,7 @@ class UserSettingsView(View, TemplateColorsMixin):
 
 
 class UserProfileView(View):
-    template_name = 'note_planner/settings/user_profile.html'
+    template_name = 'note_planner/profile/user_profile.html'
 
     def get(self, request):
         form = forms.UploadUserPhotoForm()
@@ -426,10 +426,43 @@ class UserProfileView(View):
     def post(self, request):
         form = forms.UploadUserPhotoForm(request.POST, request.FILES)
         form_button = request.POST.get('button')
-        print(form_button)
+
         if form_button == 'save' and form.is_valid():
             photo = form.cleaned_data['photo']
-            new_photo = UserProfileInfo(photo=photo, user=request.user)
+
+            # Получаем старое фото и переключаем метку main_photo в False
+            old_main_photo = UserProfilePhoto.objects.filter(user=request.user, main_photo=True)
+            old_main_photo.update(main_photo=False)
+
+            # Создаём новое основное фото профиля
+            new_photo = UserProfilePhoto(photo=photo, user=request.user, main_photo=True)
             new_photo.save()
+
             return redirect('user_profile_path')
+
         return render(request, self.template_name, {'form': form})
+
+
+class ChangeProfilePhotoView(View):
+    def get(self, request):
+        user_photo_data = UserProfilePhoto.objects.filter(user=request.user)
+
+        contex = {'user_photos': user_photo_data}
+        return render(request, 'note_planner/profile/choice_profile_photo.html', contex)
+
+    def post(self, request):
+        photo_id = request.POST.getlist('photo_id')
+        form_button = request.POST.get('button')
+
+        if photo_id:
+            if form_button == 'change_photo':
+                user_photo_data = UserProfilePhoto.objects.filter(user=request.user)
+                user_photo_data.update(main_photo=False)
+
+                user_photo = user_photo_data.filter(id=photo_id[-1])
+                user_photo.update(main_photo=True)
+
+            elif form_button == 'delete_photo':
+                for id in photo_id:
+                    UserProfilePhoto.objects.filter(user=request.user, id=id).delete()
+        return redirect('user_profile_path')
