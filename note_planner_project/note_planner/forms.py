@@ -132,3 +132,33 @@ class UploadUserPhotoForm(forms.ModelForm):
         validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])], label=''
     )
 
+
+class UserProfileInfoFrom(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        labels = {
+            'first_name': 'Имя',
+            'last_name': 'Фамилия',
+            'email': 'Электронная почта'
+        }
+
+
+class ChangeProfilePasswordFrom(forms.ModelForm):
+    password_repeat = forms.CharField(label='Повторите пароль', widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ['password']
+        labels = {
+            'password': 'Пароль'
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_repeat = cleaned_data.get('password_repeat')
+
+        if password and password_repeat and password != password_repeat:
+            raise forms.ValidationError('Пароли не совпадают')
+        return cleaned_data

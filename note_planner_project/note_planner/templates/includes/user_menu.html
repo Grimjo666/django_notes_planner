@@ -23,7 +23,11 @@
             {% else %}
                 <img src="{% static 'note_planner/image/user_logo.png' %}" alt="">
             {% endif %}
+            {% if user_name %}
+            <p>{{ user_name|title }}</p>
+            {% else %}
             <p>{{ user|title }}</p>
+            {% endif %}
         </div>
     </div>
 {% endif %}

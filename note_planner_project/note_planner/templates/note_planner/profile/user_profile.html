@@ -21,11 +21,11 @@
 
 {% block content %}
     <h3>Ваш профиль</h3>
-    <div class="change-user-photo-block">
+    <div class="change-user-block">
         <div class="user-photo">
             <div class="user-photo-wrapper">
                 {% if user_profile_photo %}
-                <img src="{{ user_profile_photo.url }}">
+                <a href="{% url 'change_profile_photo_path' %}"><img src="{{ user_profile_photo.url }}"></a>
                 {% else %}
                 <img src="{% static 'note_planner/image/user_logo.png' %}" alt="">
                 {% endif %}
@@ -36,14 +36,26 @@
         <div class="update-or-remove-photo-block hidden">
             <form method="post" action="{% url 'user_profile_path' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ form }}
+                {{ photo_form }}
                 <button type="submit" class="button-save" name="button" value="save">Сохранить</button>
             </form>
-            <form id="change-photo" method="post" action="{% url 'change_profile_photo_path' %}">
+            <a href="{% url 'change_profile_photo_path' %}"><button type="button" class="button-update-to-old">Фотографии</button></a>
+        </div>
+        <div class="user-info-block l-s-r">
+            <h4>Ваши данные</h4>
+            <form id="change-user-info-form" method="post">
                 {% csrf_token %}
-                <a href="{% url 'change_profile_photo_path' %}"><button form="change-photo" type="button" class="button-update-to-old">Поменять на старое</button></a>
-                <button type="button" class="button-delete" name="button" value="Удалить фото"><a href="">Удалить фото</a></button>
+                {{ info_form.as_p }}
+                <button form="change-user-info-form" type="submit" name="button", value="change_info">Сохранить</button>
             </form>
         </div>
+    </div>
+    <div class="user-password-block l-s-r">
+        <h4>Сменить пароль</h4>
+        <form id="change-pass-form" method="post">
+            {% csrf_token %}
+            {{ change_pass_form.as_p }}
+            <button form="change-pass-form" type="submit">Сохранить</button>
+        </form>
     </div>
 {% endblock %}

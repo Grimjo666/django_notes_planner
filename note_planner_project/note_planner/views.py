@@ -420,27 +420,63 @@ class UserProfileView(View):
     template_name = 'note_planner/profile/user_profile.html'
 
     def get(self, request):
-        form = forms.UploadUserPhotoForm()
-        return render(request, self.template_name, {'form': form})
+        user = User.objects.get(id=request.user.id)
+
+        photo_form = forms.UploadUserPhotoForm()
+        info_form = forms.UserProfileInfoFrom(instance=user)
+        change_pass_form = forms.ChangeProfilePasswordFrom()
+
+        context = {
+            'photo_form': photo_form,
+            'info_form': info_form,
+            'change_pass_form': change_pass_form
+        }
+
+        return render(request, self.template_name, context=context)
 
     def post(self, request):
-        form = forms.UploadUserPhotoForm(request.POST, request.FILES)
+        upload_form = forms.UploadUserPhotoForm(request.POST, request.FILES)
+        info_form = forms.UserProfileInfoFrom(request.POST)
+        change_pass_form = forms.ChangeProfilePasswordFrom(request.POST)
         form_button = request.POST.get('button')
 
-        if form_button == 'save' and form.is_valid():
-            photo = form.cleaned_data['photo']
+        if upload_form.is_valid():
+            self.process_upload_photo(request, upload_form)
 
-            # Получаем старое фото и переключаем метку main_photo в False
-            old_main_photo = UserProfilePhoto.objects.filter(user=request.user, main_photo=True)
-            old_main_photo.update(main_photo=False)
+        elif info_form.is_valid() and form_button == 'change_info':
+            self.process_change_user_info(request, info_form)
 
-            # Создаём новое основное фото профиля
-            new_photo = UserProfilePhoto(photo=photo, user=request.user, main_photo=True)
-            new_photo.save()
+        elif change_pass_form.is_valid():
 
-            return redirect('user_profile_path')
+            redirect('user_profile_path')
 
-        return render(request, self.template_name, {'form': form})
+        context = {
+            'upload_form': upload_form,
+            'info_form': info_form,
+            'change_pass_form': change_pass_form,
+        }
+
+        return render(request, self.template_name, context=context)
+
+    @staticmethod
+    def process_upload_photo(request, form):
+        photo = form.cleaned_data['photo']
+
+        # Получаем старое фото и переключаем метку main_photo в False
+        old_main_photo = UserProfilePhoto.objects.filter(user=request.user, main_photo=True)
+        old_main_photo.update(main_photo=False)
+
+        # Создаём новое основное фото профиля
+        new_photo = UserProfilePhoto(photo=photo, user=request.user, main_photo=True)
+        new_photo.save()
+
+    @staticmethod
+    def process_change_user_info(request, form):
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        email = form.cleaned_data['email']
+
+        User.objects.filter(id=request.user.id).update(first_name=first_name, last_name=last_name, email=email)
 
 
 class ChangeProfilePhotoView(View):
@@ -465,4 +501,6 @@ class ChangeProfilePhotoView(View):
             elif form_button == 'delete_photo':
                 for id in photo_id:
                     UserProfilePhoto.objects.filter(user=request.user, id=id).delete()
+                return redirect('change_profile_photo_path')
+
         return redirect('user_profile_path')

@@ -36,6 +36,13 @@
     text-decoration: line-through;
 }
 
+.l-s-r {
+    border: 2px solid var(--block_border_color);
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    background-color: var(--block_bg_color);
+}
+
 button {
     background-color: var(--sidebar_background);
     color: var(--font-color);

@@ -1,5 +1,6 @@
-.change-user-photo-block {
+.change-user-block {
     display: flex;
+    position: relative;
 }
 
 .user-photo {
@@ -37,6 +38,8 @@
 
 .update-or-remove-photo-block {
     display: flex;
+    position: fixed;
+    top: 280px;
     flex-direction: column;
     width: 250px;
     margin-top: auto;
@@ -52,6 +55,19 @@
     width: 100%;
 }
 
+.user-info-block {
+    margin-left: 60px;
+    padding: 10px;
+}
+
+.user-password-block {
+    margin-top: 40px;
+    margin-left: 265px;
+    padding: 10px;
+}
+
 .hidden {
     display: none;
 }
+
+
