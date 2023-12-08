@@ -23,8 +23,9 @@
                     <h3>{{ task_name }}</h3>
                     <form method="post" action="{% url 'task_id_archive_page_path' value|get:'task_id' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="form_type" value="archive_delete_task_form">
-                        <button title="Удалить" type="submit" class="button-delete-task delete_button" >✖</button>
+                        <input type="hidden" name="form_type" value="archive_task_form">
+                        <button title="Удалить" type="submit" class="button-delete-task delete_button" name="button" value="delete-task">✖</button>
+                        <button type="submit" class="button-return-task" name="button" value="return-task">Сделать активной</button>
                     </form>
                 </div>
                 <div class="archive-time-info">

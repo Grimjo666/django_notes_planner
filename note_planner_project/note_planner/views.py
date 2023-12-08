@@ -318,7 +318,7 @@ class ArchivePageView(View):
     template_name = 'note_planner/archive.html'
 
     def get(self, request):
-        data = Task.objects.all().filter(completed=1)
+        data = Task.objects.filter(completed=1)
         tasks = {task.title: {'due_date': task.due_date,
                               'completed_at': task.completed_at,
                               'task_id': task.id} for task in data}
@@ -329,8 +329,15 @@ class ArchivePageView(View):
 
     def post(self, request, task_id=None):
         form_type = request.POST.get('form_type')
-        if form_type == 'archive_delete_task_form' and task_id:
-            TasksPageView.process_delete_task(request, task_id)
+
+        if form_type == 'archive_task_form' and task_id:
+            form_button = request.POST.get('button')
+
+            if form_button == 'delete-task':
+                TasksPageView.process_delete_task(request, task_id)
+
+            elif form_button == 'return-task':
+                Task.objects.filter(id=task_id).update(completed=0)
 
         return redirect('archive_page_path')
 
@@ -447,7 +454,13 @@ class UserProfileView(View):
             self.process_change_user_info(request, info_form)
 
         elif change_pass_form.is_valid():
+            password = request.POST.get('password')
+            password_repeat = request.POST.get('password_repeat')
 
+            if password == password_repeat:
+                user = User.objects.get(id=request.user.id)
+                user.set_password(password)
+                user.save()
             redirect('user_profile_path')
 
         context = {
