@@ -12,6 +12,7 @@
 
 {% block js_scripts %}
 <script src="{% static 'note_planner/js/profile/user_profile.js' %}"></script>
+<script src="{% static 'note_planner/js/profile/show_password_checkbox.js' %}"></script>
 {% endblock %}
 
 
@@ -20,6 +21,13 @@
 {% endblock %}
 
 {% block content %}
+    {% if messages %}
+      <div id="notification" class="l-s-r">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
     <h3>Ваш профиль</h3>
     <div class="change-user-block">
         <div class="user-photo">
@@ -55,7 +63,9 @@
         <form id="change-pass-form" method="post">
             {% csrf_token %}
             {{ change_pass_form.as_p }}
-            <button form="change-pass-form" type="submit">Сохранить</button>
+            <lable>Показать пароль</lable>
+            <input type="checkbox" id="show-pass-checkbox"><br>
+            <button form="change-pass-form" type="submit" class="button-save-password">Сохранить</button>
         </form>
     </div>
 {% endblock %}

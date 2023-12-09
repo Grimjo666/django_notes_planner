@@ -153,6 +153,9 @@ class ChangeProfilePasswordFrom(forms.ModelForm):
         labels = {
             'password': 'Пароль'
         }
+        widgets = {
+            'password': forms.PasswordInput(),
+        }
 
     def clean(self):
         cleaned_data = super().clean()

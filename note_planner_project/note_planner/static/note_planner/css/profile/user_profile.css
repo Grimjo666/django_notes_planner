@@ -66,6 +66,10 @@
     padding: 10px;
 }
 
+.button-save-password {
+    margin-top: 5px;
+}
+
 .hidden {
     display: none;
 }

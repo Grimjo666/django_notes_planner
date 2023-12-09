@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+from django.contrib import messages
 from django.shortcuts import render, redirect, Http404, get_object_or_404
 from .models import *
 from django.contrib.auth import authenticate, login, logout
@@ -452,16 +453,12 @@ class UserProfileView(View):
 
         elif info_form.is_valid() and form_button == 'change_info':
             self.process_change_user_info(request, info_form)
+            messages.success(request, 'Изменено')
 
         elif change_pass_form.is_valid():
-            password = request.POST.get('password')
-            password_repeat = request.POST.get('password_repeat')
-
-            if password == password_repeat:
-                user = User.objects.get(id=request.user.id)
-                user.set_password(password)
-                user.save()
-            redirect('user_profile_path')
+            self.process_change_user_password(request, change_pass_form)
+            messages.success(request, 'Пароль успешно изменён')
+            return redirect('user_profile_path')
 
         context = {
             'upload_form': upload_form,
@@ -490,6 +487,16 @@ class UserProfileView(View):
         email = form.cleaned_data['email']
 
         User.objects.filter(id=request.user.id).update(first_name=first_name, last_name=last_name, email=email)
+
+    @staticmethod
+    def process_change_user_password(request, form):
+        password = form.cleaned_data['password']
+        password_repeat = form.cleaned_data['password_repeat']
+        if password == password_repeat:
+            user = User.objects.get(id=request.user.id)
+            user.set_password(password)
+            user.save()
+            login(request, user)
 
 
 class ChangeProfilePhotoView(View):

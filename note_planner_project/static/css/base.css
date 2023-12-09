@@ -116,6 +116,16 @@ footer {
     width: 100%;
 }
 
+#notification {
+    width: 300px;
+    position: absolute;
+    text-align: center;
+    padding: 15px;
+    z-index: 1000;
+    bottom: 40px;
+    right: 50px;
+}
+
 .hidden {
     display: none;
 }
