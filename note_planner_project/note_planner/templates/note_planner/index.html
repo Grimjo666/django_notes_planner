@@ -1,8 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load my_filters %}
 
 {% block css_style %}
 <link rel="stylesheet" href="{% static 'note_planner/css/index.css' %}">
+{% endblock %}
+
+{% block js_scripts %}
+<script src="{% static 'note_planner/js/index_statistic_tab.js' %}"></script>
 {% endblock %}
 
 {% block title %}
@@ -17,19 +22,25 @@
 <div class="statistic-block">
     <div class="inner-statistic-block">
         <h2>Статистика</h2>
-        {% if user.is_authenticated %}
-        <p>Статистика пользователя: {{ user }}</p>
-        {% else %}
-        <p>Что бы получить свою статистику вам необходимо войти в свой аккаунт или зарегистрироваться</p>
-        <a href="{% url 'login_page_path' %}">
-            <div id="button-login">Войти</div>
-        </a>
-        <a href="{% url 'register_page_path' %}">
-        <div id="button-register">
-            Зарегистрироваться
+        <p>Статистика пользователя: {% if user_name %} {{ user_name|title }} {% else %} {{ user|title }} {% endif %}</p>
+        <div>
+            <button type="button" class="button-show-statistic activ-tab">Статистика</button>
+            <button type="button" class="button-show-graphs">Графики</button>
+            <div class="text-statistic-block">
+                {% if task_statistic_data %}
+                    <p>Всего задач: {{ task_statistic_data.count_task }}</p>
+                    <p>Завершённых: {{ task_statistic_data.completed_tasks }}</p>
+                    <p>Активных: {{ task_statistic_data.not_completed_tasks }}</p>
+                    {% if task_statistic_data.avg_complete_time %}
+                        <p>Среднее время выполнение задачи: {{ task_statistic_data.avg_complete_time }}</p>
+                        <p>Последняя выполненная задача: {{ task_statistic_data.last_complete_task.title }} / {{ task_statistic_data.last_complete_task.completed_at }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="graphs-statistic-block hidden">
+
+            </div>
         </div>
-        </a>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

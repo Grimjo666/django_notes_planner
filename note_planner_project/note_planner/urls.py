@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     # path('', views.index_page, name='index_page_path'),
-    path('', TemplateView.as_view(template_name='note_planner/index.html'), name='index_page_path'),
+    path('', views.IndexPageView.as_view(), name='index_page_path'),
     path('login', views.login_page, name='login_page_path'),
     path('register', views.register_page, name='register_page_path'),
     path('logout', views.logout_page, name='logout'),

@@ -10,7 +10,7 @@ from django.views.generic import CreateView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-
+from django.db.models import Count, Max
 
 from note_planner import forms
 
@@ -47,8 +47,44 @@ class TemplateColorsMixin:
         return None
 
 
-def index_page(request):
-    return render(request, 'note_planner/index.html')
+@method_decorator(login_required, name='dispatch')
+class IndexPageView(View):
+    template_name = 'note_planner/index.html'
+
+    def get(self, request):
+        task_statistic_data = self.get_task_statistic(request)
+
+        context = {
+            'task_statistic_data': task_statistic_data
+        }
+        return render(request, self.template_name, context=context)
+
+    @staticmethod
+    def get_task_statistic(request) -> dict:
+        task_data = Task.objects.filter(user=request.user)
+        completed_task_data = task_data.filter(completed=1)
+
+        count_task = task_data.count()
+        count_completed_tasks = completed_task_data.count()
+        avg_complete_time = None
+        last_complete_task = completed_task_data.order_by('completed_at').last()
+
+        temp_time_list = list()
+        if completed_task_data:
+            for task in completed_task_data:
+                time_completed = task.completed_at - task.created_at
+                temp_time_list.append(time_completed.seconds)
+
+        if temp_time_list:
+            avg_complete_time = sum(temp_time_list) // len(temp_time_list)
+
+        return {
+            'count_task': count_task,
+            'completed_tasks': count_completed_tasks,
+            'not_completed_tasks': count_task - count_completed_tasks,
+            'avg_complete_time': avg_complete_time,
+            'last_complete_task': last_complete_task
+        }
 
 
 @login_required

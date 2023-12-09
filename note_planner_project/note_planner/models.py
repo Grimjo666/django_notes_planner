@@ -53,6 +53,7 @@ class Task(models.Model):
     description = models.TextField(blank=True, null=True)
     priority = models.IntegerField(choices=PRIORITY_CHOICES, default=3)
     completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
