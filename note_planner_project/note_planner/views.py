@@ -1,5 +1,9 @@
+import base64
+import io
 from typing import Dict, Any
+import matplotlib.pyplot as plt
 
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.contrib import messages
 from django.shortcuts import render, redirect, Http404, get_object_or_404
 from .models import *
@@ -10,7 +14,6 @@ from django.views.generic import CreateView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Count, Max
 
 from note_planner import forms
 
@@ -48,14 +51,22 @@ class TemplateColorsMixin:
 
 
 @method_decorator(login_required, name='dispatch')
-class IndexPageView(View):
+class IndexPageView(View, TemplateColorsMixin):
     template_name = 'note_planner/index.html'
 
     def get(self, request):
         task_statistic_data = self.get_task_statistic(request)
 
+        chart_labels = ['Высокий приоритет', 'Средний приоритет', 'Низкий приоритет']
+        percents = task_statistic_data['tasks_priority_percents']
+        colors = self.get_task_priority_colors_dict(request).values()
+
+        # Создаём круговую диаграмму
+        pie_chart_64 = self.create_circle_chart(request=request, labels=chart_labels, percentages=percents, colors=colors)
+
         context = {
-            'task_statistic_data': task_statistic_data
+            'task_statistic_data': task_statistic_data,
+            'pie_chart': pie_chart_64,
         }
         return render(request, self.template_name, context=context)
 
@@ -68,6 +79,12 @@ class IndexPageView(View):
         count_completed_tasks = completed_task_data.count()
         avg_complete_time = None
         last_complete_task = completed_task_data.order_by('completed_at').last()
+
+        h_p_percent = task_data.filter(priority=1).count()
+        m_p_percent = task_data.filter(priority=2).count()
+        l_p_percent = task_data.filter(priority=3).count()
+
+        tasks_priority_percents = list(map(lambda x: round(x / count_task * 100, 1), (h_p_percent, m_p_percent, l_p_percent)))
 
         temp_time_list = list()
         if completed_task_data:
@@ -83,8 +100,35 @@ class IndexPageView(View):
             'completed_tasks': count_completed_tasks,
             'not_completed_tasks': count_task - count_completed_tasks,
             'avg_complete_time': avg_complete_time,
-            'last_complete_task': last_complete_task
+            'last_complete_task': last_complete_task,
+            'tasks_priority_percents': tasks_priority_percents
         }
+
+    @staticmethod
+    def create_circle_chart(request, labels, percentages, colors):
+        # Создание круговой диаграммы
+        fig1, ax1 = plt.subplots()
+        ax1.pie(percentages, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+
+        plt.title('Диаграмма количества задач по приоритету', color='white')
+        for text in ax1.texts:
+            text.set_color('white')
+
+        # Установка равной оси, чтобы сделать круговую диаграмму круглой
+        ax1.axis('equal')
+        fig1.patch.set_alpha(0)
+
+        image_stream = io.BytesIO()
+        plt.savefig(image_stream, format='png')
+        image_stream.seek(0)
+
+        # Кодирование изображения в base64
+        image_base64 = base64.b64encode(image_stream.read()).decode('utf-8')
+
+        # Очищаем текущий график (это необходимо, чтобы он не появлялся в следующем графике)
+        plt.clf()
+
+        return image_base64
 
 
 @login_required
