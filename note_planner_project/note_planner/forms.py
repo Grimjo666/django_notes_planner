@@ -3,6 +3,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import FileExtensionValidator
 
 from .models import *
+from note_planner_api.models import *
 from django.contrib.auth.models import User
 from datetime import datetime
 

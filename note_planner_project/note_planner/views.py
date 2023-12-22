@@ -3,10 +3,10 @@ import io
 from typing import Dict, Any
 import matplotlib.pyplot as plt
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.contrib import messages
 from django.shortcuts import render, redirect, Http404, get_object_or_404
 from .models import *
+from note_planner_api.models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.views import View
@@ -59,10 +59,15 @@ class IndexPageView(View, TemplateColorsMixin):
 
         chart_labels = ['Высокий приоритет', 'Средний приоритет', 'Низкий приоритет']
         percents = task_statistic_data['tasks_priority_percents']
-        colors = self.get_task_priority_colors_dict(request).values()
+        colors = self.get_task_priority_colors_dict(request)
 
+        if colors:
+            colors = colors.values()
+
+        pie_chart_64 = None
         # Создаём круговую диаграмму
-        pie_chart_64 = self.create_circle_chart(request=request, labels=chart_labels, percentages=percents, colors=colors)
+        if percents:
+            pie_chart_64 = self.create_circle_chart(request=request, labels=chart_labels, percentages=percents, colors=colors)
 
         context = {
             'task_statistic_data': task_statistic_data,
@@ -84,8 +89,10 @@ class IndexPageView(View, TemplateColorsMixin):
         m_p_percent = task_data.filter(priority=2).count()
         l_p_percent = task_data.filter(priority=3).count()
 
-        tasks_priority_percents = list(map(lambda x: round(x / count_task * 100, 1), (h_p_percent, m_p_percent, l_p_percent)))
-
+        try:
+            tasks_priority_percents = list(map(lambda x: round(x / count_task * 100, 1), (h_p_percent, m_p_percent, l_p_percent)))
+        except:
+            tasks_priority_percents = None
         temp_time_list = list()
         if completed_task_data:
             for task in completed_task_data:
