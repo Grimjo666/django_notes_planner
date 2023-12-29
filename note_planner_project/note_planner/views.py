@@ -2,6 +2,7 @@ import base64
 import io
 from typing import Dict, Any
 import matplotlib.pyplot as plt
+import requests as rqt
 
 from django.contrib import messages
 from django.shortcuts import render, redirect, Http404, get_object_or_404
@@ -14,6 +15,7 @@ from django.views.generic import CreateView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
 
 from note_planner import forms
 
@@ -430,27 +432,46 @@ class ArchivePageView(View):
         return redirect('archive_page_path')
 
 
-def login_page(request):
-    if request.method == 'POST':
+class LoginPageView(View):
+    template_name = 'note_planner/registration/login.html'
+    api_token_endpoint = 'http://127.0.0.1:8000/auth/token/login/'
+
+    def get(self, request, context=None):
+        form = forms.UserAuthenticationForm()
+        if not context:
+            context = {
+                'form': form
+            }
+        return render(request, self.template_name, context)
+
+    def post(self, request):
         form = forms.UserAuthenticationForm(request, data=request.POST)
+
         if form.is_valid():
+
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                next_url = request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
-                else:
-                    return redirect('index_page_path')
 
-    else:
-        form = forms.UserAuthenticationForm()
-    context = {
-        'form': form
-    }
-    return render(request, 'note_planner/registration/login.html', context=context)
+            if user is not None:
+                # Если пользователь существует делаем пост-запрос к эндпоинту для создания токена
+
+                response = rqt.post(
+                    self.api_token_endpoint,
+                    data={'username': username, 'password': password}
+                                    )
+                # Если создание токена прошло успешно то логиним пользователя
+                if response.status_code == 200:
+
+                    login(request, user)
+                    next_url = request.GET.get('next')
+                    if next_url:
+                        return redirect(next_url)
+                    else:
+                        return redirect('index_page_path')
+                else:
+                    print(response.data)
+        return self.get(request, context={'form': form})
 
 
 def register_page(request):
@@ -470,7 +491,20 @@ def register_page(request):
 
 
 def logout_page(request):
-    logout(request)
+    api_token_endpoint = 'http://127.0.0.1:8000/auth/token/logout/'
+
+    user_token = Token.objects.filter(user_id=request.user.id)
+
+    if user_token.exists():
+        user_token = user_token[0]
+        # Если токен существует передаём его в пост запрос к апи для удаления
+        response = rqt.post(api_token_endpoint, headers={'Authorization': f'Token {user_token}'})
+
+        logout(request)
+        messages.success(request, 'Вы вышли мз системы')
+
+    else:
+        messages.success(request, 'Что то пошло не так')
 
     return redirect('index_page_path')
 

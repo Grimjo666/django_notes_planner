@@ -8,9 +8,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     # path('', views.index_page, name='index_page_path'),
     path('', views.IndexPageView.as_view(), name='index_page_path'),
-    path('login', views.login_page, name='login_page_path'),
+    path('login', views.LoginPageView.as_view(), name='login_page_path'),
     path('register', views.register_page, name='register_page_path'),
-    path('logout', views.logout_page, name='logout'),
+    path('logout', views.logout_page, name='logout_path'),
     path('notes', views.notes_page, name='notes_page_path'),
     path('delete_note/<int:note_id>', views.delete_note_page, name='delete_note_page_path'),
     path('add_note', views.add_note_page, name='add_note_page_path'),
