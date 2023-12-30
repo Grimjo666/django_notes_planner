@@ -62,7 +62,7 @@ class Task(models.Model):
 
 
 class SubTask(models.Model):
-    title = models.CharField(max_length=100, blank=True, null=True)
+    title = models.CharField(max_length=100, blank=False, null=False)
     description = models.TextField(blank=True, null=True)
     completed = models.BooleanField(default=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)

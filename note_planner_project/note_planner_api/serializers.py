@@ -4,8 +4,15 @@ from .models import *
 
 class TaskSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Task
+        fields = '__all__'
+
+
+class SubtaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubTask
         fields = '__all__'
 
 
