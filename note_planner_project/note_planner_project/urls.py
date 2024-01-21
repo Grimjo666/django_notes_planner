@@ -6,8 +6,8 @@ from note_planner_api.views import *
 
 
 router = routers.SimpleRouter()
-router.register(r'task', TaskViewSet, basename='task')
-router.register(r'note', NoteViewSet, basename='note')
+router.register(r'tasks', TaskViewSet, basename='task_api_path')
+router.register(r'notes', NoteViewSet, basename='note_api_path')
 
 
 urlpatterns = [

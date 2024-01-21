@@ -1,55 +1,34 @@
 import base64
 import io
+import json
 from typing import Dict, Any
 import matplotlib.pyplot as plt
 import requests as rqt
 
 from django.contrib import messages
 from django.shortcuts import render, redirect, Http404, get_object_or_404
-from .models import *
-from note_planner_api.models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.views import View
-from django.views.generic import CreateView
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 
 from note_planner import forms
+from .models import *
+from note_planner_api.models import *
+from .mixins import *
 
 
-class CacheDict:
-    def __init__(self):
-        self.cache_dict = dict()
+def get_user_headers(request):
+    user_token = Token.objects.filter(user_id=request.user.id)
+    if user_token.exists():
+        user_token = user_token[0]
 
-    def get_cache(self, key):
-        if self.cache_dict.get(key, None):
-            return self.cache_dict[key]
-
-    def update_cache_value(self, key, value):
-        if self.get_cache(key):
-            self.cache_dict[key] = value + self.cache_dict[key]
-        else:
-            self.cache_dict[key] = value
-
-
-class TemplateColorsMixin:
-    @staticmethod
-    def get_task_priority_colors_dict(request) -> dict[str, Any] | None:
-        task_colors = TaskColorSettings.objects.all().filter(user=request.user)
-        if task_colors.exists():
-            high_priority = task_colors[0].high_priority_color
-            medium_priority = task_colors[0].medium_priority_color
-            low_priority = task_colors[0].low_priority_color
-            context = {
-                'high_priority': high_priority,
-                'medium_priority': medium_priority,
-                'low_priority': low_priority
-            }
-            return context
-        return None
+    headers = {'Authorization': f'Token {user_token}'}
+    return headers
 
 
 @method_decorator(login_required, name='dispatch')
@@ -69,7 +48,8 @@ class IndexPageView(View, TemplateColorsMixin):
         pie_chart_64 = None
         # Создаём круговую диаграмму
         if percents:
-            pie_chart_64 = self.create_circle_chart(request=request, labels=chart_labels, percentages=percents, colors=colors)
+            pie_chart_64 = self.create_circle_chart(request=request, labels=chart_labels, percentages=percents,
+                                                    colors=colors)
 
         context = {
             'task_statistic_data': task_statistic_data,
@@ -92,10 +72,12 @@ class IndexPageView(View, TemplateColorsMixin):
         l_p_percent = task_data.filter(priority=3).count()
 
         try:
-            tasks_priority_percents = list(map(lambda x: round(x / count_task * 100, 1), (h_p_percent, m_p_percent, l_p_percent)))
+            tasks_priority_percents = list(
+                map(lambda x: round(x / count_task * 100, 1), (h_p_percent, m_p_percent, l_p_percent)))
         except:
             tasks_priority_percents = None
         temp_time_list = list()
+
         if completed_task_data:
             for task in completed_task_data:
                 time_completed = task.completed_at - task.created_at
@@ -253,82 +235,66 @@ class TasksPageView(View, TemplateColorsMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, *kwargs)
-        self.user = None
-        self.cache = None
-
-    def dispatch(self, request, *args, **kwargs):
-        self.user = request.user
-        return super().dispatch(request, *args, **kwargs)
+        self.task_api_endpoint = 'http://127.0.0.1:8000' + reverse('task_api_path-list')
 
     def get(self, request):
+        context = {}
 
-        tasks_data = Task.objects.filter(user=self.user, completed=0).order_by('priority')
-        subtasks_data = SubTask.objects.filter(task__in=tasks_data)
-        tasks_dict = dict()
-        cache = CacheDict()
+        headers = get_user_headers(request)
 
-        # Проходимся по задачам пользователя и создаём словарь с данными
-        for task in tasks_data:
+        try:
+            task_response = rqt.get(self.task_api_endpoint, headers=headers)
+            task_response.raise_for_status()
+            # Фильтруем записи по параметру выполнено
+            task_data = list(filter(lambda di: di['completed'] is False, task_response.json()))
 
-            # Проходимся по списку подзадач
-            subtasks_list = list()
-            for sub in subtasks_data:
+            # Проходимся по задачам пользователя и добавляем подзадачи, если имеются
+            for task in task_data:
+                subtask_api_endpoint = self.task_api_endpoint + str(task['id']) + '/subtasks/'
 
-                # Проверяем связана ли подзадача с основной задачей
-                if sub.task == task:
-                    subtasks_list.append({'title': sub.title,
-                                          'description': sub.description,
-                                          'completed': sub.completed,
-                                          'id': sub.id
-                                          })
+                subtask_response = rqt.get(subtask_api_endpoint, headers=headers)
+                subtask_response.raise_for_status()
 
-            # Проверяем на дубликаты названия задачи
-            if task.title in tasks_dict:
-                if not cache.get_cache(task.title):
-                    cache.update_cache_value(task.title, 2)
-                    task.title = task.title + ' (2)'
-                else:
-                    cache.update_cache_value(task.title, 1)
-                    task.title = task.title + f' ({str(cache.get_cache(task.title))})'
+                task['subtasks_list'] = subtask_response.json()
 
-            tasks_dict[task.title] = {'due_date': task.due_date,
-                                      'description': task.description,
-                                      'due_time': task.due_time,
-                                      'priority': task.priority,
-                                      'id': task.id,
-                                      'subtasks_list': subtasks_list}
-        context = {
-            'len_tasks': len(tasks_dict),
-            'tasks_dict': tasks_dict,
-            'add_task_form': forms.AddTaskForm(self.user),
-            'add_subtask_form': forms.AddSubTaskForm()
-        }
-        # Получаем цвета для приоритета задач и добавляем их словарь context
-        task_priority_colors = self.get_task_priority_colors_dict(request)
-        if task_priority_colors is not None:
-            context.update(task_priority_colors)
+            context = {
+                'len_tasks': len(task_data),
+                'tasks_list': task_data,
+                'add_task_form': forms.AddTaskForm(request.user),
+                'add_subtask_form': forms.AddSubTaskForm()
+            }
+            # Получаем цвета для приоритета задач и добавляем их словарь context
+            task_priority_colors = self.get_task_priority_colors_dict(request)
+            if task_priority_colors is not None:
+                context.update(task_priority_colors)
+
+        except rqt.exceptions.RequestException as ex:
+            messages.success(request, 'Произошла ошибка при получении данных')
 
         return render(request, self.template_name, context=context)
 
     def post(self, request, task_id=None):
+        # Получаем заголовки запроса для пользователя
+        headers = get_user_headers(request)
+
         # Достаём название пришедшей формы из скрытого поля
         form_type = request.POST.get('form_type')
         # Достаём название нажатой кнопки из пришедшей формы
         form_button = request.POST.get('button')
 
         if form_type == 'add_task':
-            self.process_add_task_form(request)
+            self.process_add_task_form(request, headers)
 
         if form_type == 'add_subtask':
-            self.process_add_subtask_form(request)
+            self.process_add_subtask_form(request, headers)
 
         if form_type == 'done_edit_delete_task_form' and task_id:
 
             if form_button == 'delete':
-                self.process_delete_task(request, task_id)
+                self.process_delete_task(request, task_id, headers)
 
             elif form_button == 'done':
-                self.process_done_task(request, int(task_id))
+                self.process_switch_task(task_id, headers)
 
             elif form_button == 'edit':
                 print('edit')
@@ -337,71 +303,98 @@ class TasksPageView(View, TemplateColorsMixin):
 
             if form_button == 'delete':
                 for i in request.POST.getlist('checkbox'):
-                    self.process_delete_task(request, int(i))
+                    self.process_delete_task(request, int(i), headers)
 
             elif form_button == 'done':
                 for i in request.POST.getlist('checkbox'):
-                    self.process_done_task(request, int(i))
+                    self.process_switch_task(int(i), headers)
 
         if form_type == 'edit_subtask_form':
             if form_button == 'done':
-                self.process_switch_subtask(request, task_id)
+                self.process_switch_subtask(request, headers)
             elif form_button == 'delete':
-                self.delete_subtask(request, task_id)
+                self.process_delete_subtask(request, headers)
 
         return redirect('tasks_page_path')
 
     # Обработка формы добавления задачи
-    def process_add_task_form(self, request):
+    def process_add_task_form(self, request, headers):
         add_task_form = forms.AddTaskForm(request.user, request.POST)
+
         if add_task_form.is_valid():
-            add_task_form.save(commit=False)
-            add_task_form.instance.user = request.user
-            add_task_form.save()
+            task_data = add_task_form.cleaned_data
+            task_data['user'] = request.user
+
+            rqt.post(self.task_api_endpoint, data=task_data, headers=headers)
         else:
             return render(request, self.template_name, context={'add_task_form': add_task_form})
 
     # Обработка формы добавления подзадачи
-    @staticmethod
-    def process_add_subtask_form(request):
+    def process_add_subtask_form(self, request, headers):
         add_subtask_form = forms.AddSubTaskForm(request.POST)
 
         # Проверяем форму на валидность
         if add_subtask_form.is_valid() and add_subtask_form.cleaned_data['title']:
             # Получаем ID задачи, к которой относится подзадача
             task_id = request.POST.get('task_id')
-            task_model = Task.objects.all().get(id=task_id)
+
+            new_subtask_data = {'title': add_subtask_form.cleaned_data['title'],
+                                'description': add_subtask_form.cleaned_data['description'],
+                                'task': task_id}
+
+            subtask_api_endpoint = self.task_api_endpoint + task_id + '/subtasks/'
+
             # Сохраняем подзадачу
-            SubTask.objects.create(
-                title=add_subtask_form.cleaned_data['title'],
-                description=add_subtask_form.cleaned_data['description'],
-                task=task_model
-            )
+            response = rqt.post(subtask_api_endpoint, data=new_subtask_data, headers=headers)
 
-    @staticmethod
-    def process_done_task(request, task_id):
-        task = get_object_or_404(Task, id=task_id, user=request.user)
-        task.completed = True
-        task.completed_at = timezone.now()
-        task.save()
+    def process_switch_task(self, task_id, headers):
+        task_api_endpoint = self.task_api_endpoint + str(task_id) + '/'
+        response = rqt.get(task_api_endpoint, headers=headers)
+        response.raise_for_status()
 
-    @staticmethod
-    def process_switch_subtask(request, subtask_id):
-        if request.method == 'POST':
-            subtask = get_object_or_404(SubTask, id=subtask_id)
-            # Инвертируем значение поля completed
-            subtask.completed = not subtask.completed
-            # Сохраняем изменения
-            subtask.save()
+        # Получаем словарь с данными о задаче
+        task_data = response.json()
+        if not task_data['completed']:
+            task_data['completed_at'] = timezone.now()
+        task_data['completed'] = not task_data['completed']  # Получаем статус и меняем его на противоположный
+        rqt.put(task_api_endpoint, data=task_data, headers=headers)  # Обновляем данные через апи
 
-    @staticmethod
-    def process_delete_task(request, task_id):
-        Task.objects.filter(user=request.user, id=task_id).delete()
+    def process_switch_subtask(self, request, headers):
+        task_id = request.POST.get('task_id')
+        subtask_id = request.POST.get('subtask_id')
 
-    @staticmethod
-    def delete_subtask(request, subtask_id):
-        if request.method == 'POST':
-            SubTask.objects.filter(id=subtask_id).delete()
+        # Формируем эндпоинт для delete запроса к апи
+        subtask_api_endpoint = f'{self.task_api_endpoint}{task_id}/subtasks/{subtask_id}/'
+
+        response = rqt.get(subtask_api_endpoint, headers=headers)
+        response.raise_for_status()
+        subtask = response.json()
+        subtask_completed = subtask['completed']
+
+        data = {'completed': not subtask_completed}
+        response = rqt.patch(subtask_api_endpoint, data=data, headers=headers)
+        response.raise_for_status()
+
+        text = 'Подзадача ' + ['Выполнена', 'Активна'][subtask_completed]
+        messages.success(request, text)
+
+    def process_delete_task(self, request, task_id, headers):
+        response = rqt.delete(f'{self.task_api_endpoint}{task_id}', headers=headers)
+        response.raise_for_status()
+
+        messages.success(request, 'Задача удалена')
+
+    def process_delete_subtask(self, request, headers):
+        task_id = request.POST.get('task_id')
+        subtask_id = request.POST.get('subtask_id')
+
+        # Формируем эндпоинт для delete запроса к апи
+        subtask_api_endpoint = f'{self.task_api_endpoint}{task_id}/subtasks/{subtask_id}/'
+
+        response = rqt.delete(subtask_api_endpoint, headers=headers)
+        response.raise_for_status()
+
+        messages.success(request, 'Подзадача удалена')
 
 
 class ArchivePageView(View):
@@ -417,18 +410,19 @@ class ArchivePageView(View):
         }
         return render(request, self.template_name, context=context)
 
-    def post(self, request, task_id=None):
+    def post(self, request, task_id):
         form_type = request.POST.get('form_type')
 
         if form_type == 'archive_task_form' and task_id:
             form_button = request.POST.get('button')
 
             if form_button == 'delete-task':
-                TasksPageView.process_delete_task(request, task_id)
+                headers = get_user_headers(request)
+                TasksPageView.process_delete_task(request, task_id, headers=headers)
 
             elif form_button == 'return-task':
-                Task.objects.filter(id=task_id).update(completed=0)
-
+                headers = get_user_headers(request)
+                TasksPageView().process_switch_task(task_id, headers)
         return redirect('archive_page_path')
 
 
@@ -459,7 +453,7 @@ class LoginPageView(View):
                 response = rqt.post(
                     self.api_token_endpoint,
                     data={'username': username, 'password': password}
-                                    )
+                )
                 # Если создание токена прошло успешно то логиним пользователя
                 if response.status_code == 200:
 
@@ -500,11 +494,8 @@ def logout_page(request):
         # Если токен существует передаём его в пост запрос к апи для удаления
         response = rqt.post(api_token_endpoint, headers={'Authorization': f'Token {user_token}'})
 
-        logout(request)
-        messages.success(request, 'Вы вышли мз системы')
-
-    else:
-        messages.success(request, 'Что то пошло не так')
+    logout(request)
+    messages.success(request, 'Вы вышли мз системы')
 
     return redirect('index_page_path')
 

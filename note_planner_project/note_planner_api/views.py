@@ -7,7 +7,6 @@ from rest_framework.response import Response
 
 from .models import *
 from .serializers import *
-from .mixins import APIResponseMixin
 
 
 # authentication_classes = [TokenAuthentication]
@@ -42,7 +41,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['get', 'put', 'delete'], detail=True, url_path='subtasks/(?P<subtask_id>[^/.]+)')
+    @action(methods=['get', 'put', 'patch', 'delete'], detail=True, url_path='subtasks/(?P<subtask_id>[^/.]+)')
     def subtask_detail(self, request, pk=None, subtask_id=None):
         task_instance = self.get_object()
         # Получение экземпляра подзадачи
@@ -52,10 +51,9 @@ class TaskViewSet(viewsets.ModelViewSet):
             serializer = SubtaskSerializer(subtask_instance)
             return Response(serializer.data)
 
-        elif request.method == 'PUT':
-            serializer = SubtaskSerializer(subtask_instance, data=request.data)
+        elif request.method in ('PUT', 'PATCH'):
             # Обновление данных подзадачи
-            serializer = SubtaskSerializer(subtask_instance, data=request.data)
+            serializer = SubtaskSerializer(subtask_instance, data=request.data, partial=request.method == 'PATCH')
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)

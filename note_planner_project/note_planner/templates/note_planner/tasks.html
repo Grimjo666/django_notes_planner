@@ -24,87 +24,86 @@
 {% block content %}
 <h2>Задачи:</h2>
 <div class="tasks-block">
-
-    {% for task_name, value in tasks_dict.items%}
+    {% for task in tasks_list %}
         <div class="checkbox-label">
             <div class="check-box-container">
-                <input type="checkbox" id="task-checkbox-{{value|get:'id'}}" name="checkbox" value="{{ value.id }}" form="tasks-form">
+                <input type="checkbox" id="task-checkbox-{{ task.id }}" name="checkbox" value="{{ task.id }}" form="tasks-form">
             </div>
 
-            {% if value|get:"priority" == 1 %}
+            {% if task.priority == 1 %}
             <div class="tasks-items" style="border-left-color: {{ high_priority }};">
-            {% elif value|get:"priority" == 2 %}
+            {% elif task.priority == 2 %}
             <div class="tasks-items" style="border-left-color: {{ medium_priority }};">
             {% else %}
             <div class="tasks-items" style="border-left-color: {{ low_priority }};">
             {% endif %}
 
-                <h3>{{ task_name }}</h3>
+                <h3>{{ task.title }}</h3>
                 <p>
-                    Дедлайн: {{ value|get:"due_date" }}
-                    {% if value|get:"due_time" %}
-                    - {{ value|get:"due_time" }}
+                    Дедлайн: {{ task.due_date }}
+                    {% if task.due_time %}
+                    - {{ task.due_time }}
                     {% endif %}
                 </p>
 
-                <form method="post" action="{% url 'task_id_page_path' value|get:'id' %}" >
+                <form method="post" action="{% url 'task_id_page_path' task.id %}" >
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="done_edit_delete_task_form">
                     <button title="Выполнено" type="submit" class="button-done-task" name="button" value="done">✔</button>
                     <button title="Изменить" type="submit" class="button-edit-task" name="button" value="edit">✐</button>
                     <button title="Удалить" type="submit" class="button-delete-task" name="button" value="delete">✖</button>
                 </form>
-                <button type="button" class="button-show-description task-id-{{ value|get:'id' }}">▼</button>
+                <button type="button" class="button-show-description task-id-{{ task.id }}">▼</button>
 
             </div>
 
         </div>
-        {% if value|get:"priority" == 1 %}
-        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden" style="border-left-color: {{ high_priority }};">
-        {% elif value|get:"priority" == 2 %}
-        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden" style="border-left-color: {{ medium_priority }};">
+        {% if task.priority == 1 %}
+        <div class="more-detailed-task task-id-{{ task.id }} hidden" style="border-left-color: {{ high_priority }};">
+        {% elif task.priority == 2 %}
+        <div class="more-detailed-task task-id-{{ task.id }} hidden" style="border-left-color: {{ medium_priority }};">
         {% else %}
-        <div class="more-detailed-task task-id-{{ value|get:'id' }} hidden" style="border-left-color: {{ low_priority }};">
+        <div class="more-detailed-task task-id-{{ task.id }} hidden" style="border-left-color: {{ low_priority }};">
         {% endif %}
-            {% if value|get:"description" %}
+            {% if task.description %}
             <h3 class="task-description-title">Описание задачи</h3>
-            <div class="task-description-block">{{ value|get:"description" }}</div>
+            <div class="task-description-block">{{ task.description }}</div>
             {% endif %}
             <h3 class="task-subtask-title">Подзадачи:</h3>
             <div class="subtask-item">
-                <button type="button" class="add-subtask-bottom task-id-{{ value|get:'id' }}">+</button>
+                <button type="button" class="add-subtask-bottom task-id-{{ task.id }}">+</button>
             </div>
-            <div class="add-subtask-block task-id-{{ value|get:'id' }} hidden">
+            <div class="add-subtask-block task-id-{{ task.id }} hidden">
                 <form method="POST" action="{% url 'tasks_page_path' %}">
                     {% csrf_token %}
                     {{ add_subtask_form.as_p }}
                     <input type="hidden" name="form_type" value="add_subtask">
-                    <input type="hidden" name="task_id" value="{{ value|get:'id' }}">
-                    <button type="submit" class="save-button task-id-{{ value|get:'id' }}">Сохранить</button>
+                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                    <button type="submit" class="save-button task-id-{{ task.id }}">Сохранить</button>
                 </form>
             </div>
-            {% for subtask in value|get:"subtasks_list" %}
-
-            <div class="subtask-item">
-                <div class="subtask-title">
-                    {% if subtask.completed %}
-                    <h4 class="cross-out-text">{{ subtask.title }}</h4>
-                    {% else %}
-                    <h4>{{ subtask.title }}</h4>
-                    {% endif %}
-                    <div class="subtask-buttons">
-                        <form method="post" action="{% url 'task_id_page_path' subtask|get:'id' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="form_type" value="edit_subtask_form">
-                            <button title="Выполнено" type="submit" class="button-done-subtask" name="button" value="done">✔</button>
-                            <button type="button" class="button-show-subtask-description subtask-id-{{ subtask|get:'id' }}" >▼</button>
-                            <button type="submit" class="button-delete-subtask delete_button subtask-id-{{ subtask|get:'id' }}" name="button" value="delete">✖</button>
-                        </form>
+            {% for subtask in task.subtasks_list.subtasks %}
+                <div class="subtask-item">
+                    <div class="subtask-title">
+                        {% if subtask.completed %}
+                        <h4 class="cross-out-text">{{ subtask.title }}</h4>
+                        {% else %}
+                        <h4>{{ subtask.title }}</h4>
+                        {% endif %}
+                        <div class="subtask-buttons">
+                            <form method="post" action="{% url 'tasks_page_path' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_type" value="edit_subtask_form">
+                                <input type="hidden" name="task_id" value="{{ task.id }}">
+                                <input type="hidden" name="subtask_id" value="{{ subtask.id }}">
+                                <button title="Выполнено" type="submit" class="button-done-subtask" name="button" value="done">✔</button>
+                                <button type="button" class="button-show-subtask-description subtask-id-{{ subtask.id }}" >▼</button>
+                                <button type="submit" class="button-delete-subtask delete_button subtask-id-{{ subtask.id }}" name="button" value="delete">✖</button>
+                            </form>
+                        </div>
                     </div>
+                    <p class="subtask-description subtask-id-{{ subtask.id }} hidden">{{ subtask.description }}</p>
                 </div>
-
-                <p class="subtask-description subtask-id-{{ subtask|get:'id' }} hidden">{{ subtask.description }}</p>
-            </div>
             {% endfor %}
         </div>
     {% endfor %}
@@ -131,3 +130,4 @@
 </div>
 
 {% endblock %}
+
